@@ -589,7 +589,7 @@ function MethodHeroCard({ label, value, detail, accent = "neutral" }) {
         {label}
       </p>
       <div className="mt-3 flex items-end gap-1.5">
-        <span className="text-4xl font-semibold tracking-tight">{value}</span>
+        <span className="text-3xl font-semibold tracking-tight sm:text-4xl">{value}</span>
         <span className="pb-1 text-sm font-medium" style={{ color: style.meta }}>
           tCO2e
         </span>
@@ -953,7 +953,7 @@ export default function Scope2Calculator() {
   }
 
   return (
-    <section className="mx-auto max-w-7xl pb-16 pt-2 sm:pb-24 sm:pt-4">
+    <section className="mx-auto max-w-7xl px-4 pb-16 pt-2 sm:px-6 sm:pb-24 sm:pt-4">
       <div className="max-w-3xl">
         <div className="mb-3 flex flex-wrap items-center gap-2">
           <Badge color="green">Sustainability</Badge>

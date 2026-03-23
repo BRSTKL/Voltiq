@@ -669,7 +669,7 @@ export default function CableSizingTool() {
   }
 
   return (
-    <section className="mx-auto max-w-7xl pb-16 pt-2 sm:pb-24 sm:pt-4">
+    <section className="mx-auto max-w-7xl px-4 pb-16 pt-2 sm:px-6 sm:pb-24 sm:pt-4">
       <div className="max-w-3xl">
         <h1 className="text-[34px] font-medium tracking-[-0.03em] text-[var(--color-text)] sm:text-[38px]">
           Cable Sizing Calculator

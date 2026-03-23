@@ -904,14 +904,14 @@ export default function InverterSizingTool() {
   )} MPPT`;
 
   return (
-    <section className="mx-auto max-w-7xl pb-16 pt-2 sm:pb-24 sm:pt-4">
+    <section className="mx-auto max-w-7xl px-4 pb-16 pt-2 sm:px-6 sm:pb-24 sm:pt-4">
       <div className="max-w-3xl">
         <div className="mb-3 flex flex-wrap items-center gap-2">
           <Badge color="teal">New tool</Badge>
           <Badge color="amber">String design</Badge>
           <Badge color="blue">Pure calculation + Gemini</Badge>
         </div>
-        <h1 className="text-4xl font-semibold tracking-[-0.04em] text-[var(--color-text)] sm:text-5xl">
+        <h1 className="text-[30px] font-semibold tracking-[-0.04em] text-[var(--color-text)] sm:text-5xl">
           Inverter Sizing Tool
         </h1>
         <p className="mt-4 text-base leading-7 text-[var(--color-text-muted)] sm:text-lg">

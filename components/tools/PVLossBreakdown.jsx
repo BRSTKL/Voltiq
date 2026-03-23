@@ -759,7 +759,7 @@ export default function PVLossBreakdown() {
   }
 
   return (
-    <section className="mx-auto max-w-7xl pb-16 pt-2 sm:pb-24 sm:pt-4">
+    <section className="mx-auto max-w-7xl px-4 pb-16 pt-2 sm:px-6 sm:pb-24 sm:pt-4">
       <div className="max-w-3xl">
         <div className="mb-3 flex flex-wrap items-center gap-2">
           <Badge color="teal">New tool</Badge>

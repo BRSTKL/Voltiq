@@ -59,6 +59,20 @@ SITE ASSESSMENT:
 `;
 }
 
+function pickLandUseBlock(snapshot) {
+  if (!snapshot) {
+    return "";
+  }
+
+  return `
+LAND USE & CAPACITY:
+  Installed capacity: ${snapshot.results?.installedKwp ?? "--"} kWp
+  Total panels: ${snapshot.results?.totalPanels ?? "--"}
+  Power density: ${snapshot.results?.powerDensityKwpPerHa ?? "--"} kWp/ha
+  Inverters required: ${snapshot.results?.invertersNeeded ?? "--"}
+`;
+}
+
 function pickSolarBlock(snapshot) {
   if (!snapshot) {
     return "";
@@ -249,6 +263,7 @@ Date: ${projectData.reportDate}
 
 Available analysis results:
 ${pickSiteBlock(results.site)}
+${pickLandUseBlock(results.landuse)}
 ${pickSolarBlock(results.solar)}
 ${pickWindBlock(results.wind)}
 ${pickCarbonBlock(results.carbon)}
@@ -491,10 +506,10 @@ export default function ReportGenerator() {
           <Badge color="teal">Project-wide reporting</Badge>
           <Badge color="amber">Gemini executive summary</Badge>
         </div>
-        <h1 className="text-[34px] font-medium tracking-[-0.03em] text-[var(--color-text)] sm:text-[38px]">
+        <h1 className="text-[30px] font-medium tracking-[-0.03em] text-[var(--color-text)] sm:text-[38px]">
           Solar Project Report Generator
         </h1>
-        <p className="mt-3 text-lg text-[var(--color-text-muted)]">
+        <p className="mt-3 text-base leading-7 text-[var(--color-text-muted)] sm:text-lg">
           Combine all tool results into a single professional PDF report.
         </p>
       </div>
@@ -752,7 +767,7 @@ export default function ReportGenerator() {
                 (tool) => (
                   <div
                     key={tool.id}
-                    className="flex items-center justify-between gap-3 rounded-[var(--radius-md)] bg-[var(--color-surface-secondary)] px-4 py-3 [border:var(--border-default)]"
+                    className="flex flex-col gap-2 rounded-[var(--radius-md)] bg-[var(--color-surface-secondary)] px-4 py-3 [border:var(--border-default)] sm:flex-row sm:items-center sm:justify-between"
                   >
                     <span className="text-sm font-medium text-[var(--color-text)]">{tool.name}</span>
                     <span className="text-xs font-semibold uppercase tracking-[0.16em] text-[var(--color-brand)]">

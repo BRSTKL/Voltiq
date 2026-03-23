@@ -240,7 +240,7 @@ export default function BatteryStorageSizer() {
   }
 
   return (
-    <section className="mx-auto max-w-7xl px-6 pb-16 pt-16 sm:pb-24 sm:pt-20">
+    <section className="mx-auto max-w-7xl px-4 pb-16 pt-14 sm:px-6 sm:pb-24 sm:pt-20">
       <div className="max-w-3xl">
         <h1 className="text-[34px] font-medium tracking-[-0.03em] text-[var(--color-text)] sm:text-[38px]">
           Battery Storage Sizer

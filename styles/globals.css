@@ -92,6 +92,7 @@ html.dark {
 html,
 body {
   min-height: 100%;
+  overflow-x: hidden;
 }
 
 body {
@@ -103,11 +104,30 @@ body {
   text-rendering: optimizeLegibility;
 }
 
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
 button,
 input,
 select,
 textarea {
   font: inherit;
+  max-width: 100%;
+}
+
+img,
+svg,
+canvas,
+video {
+  max-width: 100%;
+}
+
+a,
+button {
+  touch-action: manipulation;
 }
 
 ::selection {

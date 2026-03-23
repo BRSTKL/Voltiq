@@ -64,12 +64,12 @@ export default function Navbar() {
 
   return (
     <header className="sticky top-0 z-50 bg-[var(--color-surface)]/95 backdrop-blur [border-bottom:var(--border-default)]">
-      <div className="mx-auto flex max-w-7xl items-center gap-4 px-6 py-4">
-        <Link href="/" className="flex items-center gap-3">
-          <span className="flex h-10 w-10 items-center justify-center rounded-[var(--radius-md)] bg-[var(--color-brand)] text-white shadow-sm">
+      <div className="mx-auto flex max-w-7xl items-center gap-3 px-4 py-3 sm:gap-4 sm:px-6 sm:py-4">
+        <Link href="/" className="flex min-w-0 items-center gap-3">
+          <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-[var(--radius-md)] bg-[var(--color-brand)] text-white shadow-sm sm:h-10 sm:w-10">
             <BoltIcon />
           </span>
-          <span className="text-xl font-semibold tracking-[-0.03em]">
+          <span className="truncate text-lg font-semibold tracking-[-0.03em] sm:text-xl">
             <span className="text-[var(--color-text)]">volt</span>
             <span className="text-[var(--color-brand)]">iq</span>
           </span>
@@ -108,7 +108,7 @@ export default function Navbar() {
           aria-label={isMenuOpen ? "Close navigation menu" : "Open navigation menu"}
           aria-expanded={isMenuOpen}
           onClick={() => setIsMenuOpen((open) => !open)}
-          className="ml-auto inline-flex items-center justify-center rounded-[var(--radius-md)] p-2 text-[var(--color-text)] transition-colors duration-200 hover:bg-[var(--color-overlay-subtle)] md:hidden"
+          className="ml-auto inline-flex shrink-0 items-center justify-center rounded-[var(--radius-md)] p-2 text-[var(--color-text)] transition-colors duration-200 hover:bg-[var(--color-overlay-subtle)] md:hidden"
         >
           <HamburgerIcon open={isMenuOpen} />
         </button>
@@ -116,7 +116,7 @@ export default function Navbar() {
 
       <div
         className={cn(
-          "overflow-hidden px-6 transition-all duration-200 md:hidden",
+          "overflow-hidden px-4 transition-all duration-200 sm:px-6 md:hidden",
           isMenuOpen
             ? "max-h-80 pb-5 opacity-100 [border-top:var(--border-default)]"
             : "max-h-0 pb-0 opacity-0"

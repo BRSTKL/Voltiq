@@ -320,15 +320,15 @@ export default function HomePage() {
           <div className="absolute right-[-5rem] top-24 h-64 w-64 rounded-full bg-[rgba(24,95,165,0.12)] blur-3xl" />
         </div>
 
-        <section className="mx-auto max-w-7xl px-6 pb-12 pt-16 sm:pb-16 sm:pt-24">
+        <section className="mx-auto max-w-7xl px-4 pb-12 pt-14 sm:px-6 sm:pb-16 sm:pt-24">
           <div className="max-w-3xl">
             <Badge color="green">Built for energy engineers</Badge>
-            <h1 className="mt-6 text-[34px] font-medium leading-[1.02] tracking-[-0.03em] text-[var(--color-text)] sm:text-[38px]">
+            <h1 className="mt-6 text-[30px] font-medium leading-[1.02] tracking-[-0.03em] text-[var(--color-text)] sm:text-[38px]">
               Renewable energy calculations
               <br />
               in <span className="text-[var(--color-brand)]">seconds</span>
             </h1>
-            <p className="mt-5 max-w-2xl text-lg leading-8 text-[var(--color-text-muted)]">
+            <p className="mt-5 max-w-2xl text-base leading-7 text-[var(--color-text-muted)] sm:text-lg sm:leading-8">
               From solar feasibility to wind farm analysis - every calculation your project needs,
               in one place.
             </p>
@@ -357,7 +357,7 @@ export default function HomePage() {
           </div>
         </section>
 
-        <section className="mx-auto max-w-7xl px-6 py-10 sm:py-14">
+        <section className="mx-auto max-w-7xl px-4 py-10 sm:px-6 sm:py-14">
           <SectionLabel>Tool suite</SectionLabel>
           <div className="mt-3 max-w-2xl">
             <h2 className="text-3xl font-medium tracking-[-0.03em] text-[var(--color-text)] sm:text-[34px]">
@@ -372,7 +372,7 @@ export default function HomePage() {
           </div>
         </section>
 
-        <section className="mx-auto max-w-7xl px-6 py-10 sm:py-16">
+        <section className="mx-auto max-w-7xl px-4 py-10 sm:px-6 sm:py-16">
           <SectionLabel>Pricing</SectionLabel>
           <div className="mt-3 max-w-2xl">
             <h2 className="text-3xl font-medium tracking-[-0.03em] text-[var(--color-text)] sm:text-[34px]">
@@ -387,7 +387,7 @@ export default function HomePage() {
           </div>
         </section>
 
-        <section className="mx-auto max-w-7xl px-6 pb-16 pt-6 sm:pb-24 sm:pt-10">
+        <section className="mx-auto max-w-7xl px-4 pb-16 pt-6 sm:px-6 sm:pb-24 sm:pt-10">
           <div className="rounded-[28px] bg-[var(--color-brand-light)] px-6 py-10 text-center shadow-[0_18px_40px_rgba(15,23,42,0.05)] [border:var(--border-default)] sm:px-10">
             <h2 className="text-[30px] font-medium tracking-[-0.03em] text-[var(--color-text)] sm:text-[34px]">
               Start calculating in 30 seconds

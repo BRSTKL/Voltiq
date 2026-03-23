@@ -72,6 +72,18 @@ const tools = [
     isNew: true,
   },
   {
+    name: "Land Use & Capacity Estimator",
+    desc: "Maximum installable capacity, panel count, and inverter pre-sizing from land area.",
+    category: "solar",
+    difficulty: "medium",
+    apis: "Pure calculation",
+    href: "/tools/land-use-capacity",
+    color: "#EAF3DE",
+    iconColor: "#3B6D11",
+    Icon: MapPinIcon,
+    isNew: true,
+  },
+  {
     name: "PV Loss Breakdown",
     desc: "PVsyst-style loss diagram from gross irradiance to net AC output - loss waterfall, performance ratio and category breakdown.",
     category: "solar",
@@ -298,7 +310,7 @@ export default function ToolsPage() {
       : tools.filter((tool) => tool.category === activeFilter);
 
   return (
-    <main className="mx-auto max-w-7xl px-6 pb-16 pt-16 sm:pb-24 sm:pt-20">
+    <main className="mx-auto max-w-7xl px-4 pb-16 pt-14 sm:px-6 sm:pb-24 sm:pt-20">
       <PanelCard className="mb-8 flex flex-col gap-3 bg-[var(--color-brand-light)] sm:flex-row sm:items-center sm:justify-between">
         <div>
           <p className="text-sm font-semibold uppercase tracking-[0.18em] text-[var(--color-brand-dark)]">
@@ -313,7 +325,7 @@ export default function ToolsPage() {
         </div>
         <Link
           href="/report"
-          className="inline-flex items-center justify-center gap-2 rounded-[var(--radius-md)] bg-[var(--color-brand)] px-4 py-3 text-sm font-semibold text-white transition-colors duration-200 hover:bg-[var(--color-brand-dark)]"
+          className="inline-flex min-h-[48px] w-full items-center justify-center gap-2 rounded-[var(--radius-md)] bg-[var(--color-brand)] px-4 py-3 text-sm font-semibold text-white transition-colors duration-200 hover:bg-[var(--color-brand-dark)] sm:w-auto"
         >
           <span>Generate report</span>
           <ArrowRightIcon className="h-4 w-4" />
@@ -327,7 +339,7 @@ export default function ToolsPage() {
         <p className="mt-3 text-lg text-[var(--color-text-muted)]">Select a tool to begin</p>
       </div>
 
-      <div className="mt-8 flex flex-wrap gap-x-5 gap-y-3 border-b border-black/0 [border-bottom:var(--border-default)]">
+      <div className="mt-8 flex flex-wrap gap-x-4 gap-y-3 border-b border-black/0 [border-bottom:var(--border-default)]">
         {filters.map((filter) => {
           const isActive = filter.value === activeFilter;
 
