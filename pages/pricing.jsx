@@ -19,6 +19,7 @@ import {
   MapPin,
 } from "lucide-react";
 import { Badge } from "../components/ui";
+import StripePricingPage from "../components/StripePricingPage";
 
 const TIERS = [
   {
@@ -30,7 +31,7 @@ const TIERS = [
     ctaHref: "/tools",
     ctaVariant: "outline",
     features: [
-      { label: "All 14 engineering tools — unlimited calculations", included: true },
+      { label: "All 15 tools - unlimited calculations", included: true },
       { label: "Real climate data via Open-Meteo API", included: true },
       { label: "Solar, wind, storage, financial & ESG tools", included: true },
       { label: "Browser-based — no account required", included: true },
@@ -110,7 +111,7 @@ const PRO_FEATURES = [
   },
   {
     title: "Multi-tool project report",
-    body: "Combine results from all 14 tools into a single professional PDF. Structured by project phase — site, design, storage, financial, ESG. Ready to send to a client.",
+    body: "Combine results from all 15 tools into a single professional PDF. Structured by project phase - site, design, storage, financial, ESG. Ready to send to a client.",
     icon: FileText,
   },
   {
@@ -123,7 +124,7 @@ const PRO_FEATURES = [
 const FAQS = [
   {
     q: "Is the free tier really free forever?",
-    a: "Yes. All 14 engineering tools, unlimited calculations, and real climate data are free with no time limit and no account required. We don't ask for a credit card.",
+    a: "Yes. All 15 engineering tools, unlimited calculations, and real climate data are free with no time limit and no account required. We don't ask for a credit card.",
   },
   {
     q: "What is the AI analysis feature?",
@@ -283,7 +284,7 @@ function FAQAccordion({ open, setOpen }) {
   );
 }
 
-export default function PricingPage() {
+function LegacyPricingPage() {
   const [open, setOpen] = useState(0);
 
   return (
@@ -292,7 +293,7 @@ export default function PricingPage() {
         <title>Pricing — Voltiq</title>
         <meta
           name="description"
-          content="Start free with all 14 engineering tools. Upgrade to Pro for AI analysis, PDF reports, and executive summaries."
+          content="Start free with all 15 engineering tools. Upgrade to Pro for AI analysis, PDF reports, and executive summaries."
         />
       </Head>
 
@@ -339,7 +340,7 @@ export default function PricingPage() {
               </p>
               <h2 className="text-xl font-semibold text-white">Every tool. Free. Forever.</h2>
               <p className="text-sm text-gray-400">
-                No account needed. All 14 engineering tools run entirely in your browser
+                No account needed. All 15 engineering tools run entirely in your browser
                 using real climate data.
               </p>
             </div>
@@ -420,3 +421,9 @@ export default function PricingPage() {
     </>
   );
 }
+
+export default function PricingPage() {
+  return <StripePricingPage />;
+}
+
+

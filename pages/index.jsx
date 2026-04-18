@@ -150,7 +150,7 @@ const pricingPlans = [
     buttonVariant: "primary",
     featured: true,
     features: [
-      { label: "All 10 tools", included: true },
+      { label: "All 15 tools", included: true },
       { label: "Unlimited calc", included: true },
       { label: "PDF + Excel export", included: true },
       { label: "Engineering summaries", included: true },
@@ -174,7 +174,7 @@ const pricingPlans = [
   },
 ];
 
-const stats = ["10 Engineering tools", "Free APIs", "Project-ready outputs"];
+const stats = ["15 engineering tools", "Free APIs", "Project-ready outputs"];
 
 const cn = (...classes) => classes.filter(Boolean).join(" ");
 
@@ -309,6 +309,14 @@ export default function HomePage() {
         />
         <meta name="theme-color" media="(prefers-color-scheme: light)" content="#E1F5EE" />
         <meta name="theme-color" media="(prefers-color-scheme: dark)" content="#09120F" />
+        <meta property="og:title" content="Voltiq | Renewable energy calculations in seconds" />
+        <meta property="og:description" content="15 engineering tools for solar, wind, battery storage, LCOE, and more. Start free." />
+        <meta property="og:type" content="website" />
+        <meta property="og:url" content="https://voltiq.app" />
+        <meta name="twitter:card" content="summary_large_image" />
+        <meta name="twitter:title" content="Voltiq | Renewable energy calculations in seconds" />
+        <meta name="twitter:description" content="15 engineering tools for solar, wind, battery storage, LCOE, and more. Start free." />
+        <link rel="canonical" href="https://voltiq.app" />
       </Head>
 
       <main className="relative overflow-hidden">
