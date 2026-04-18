@@ -1,6 +1,8 @@
 import Link from "next/link";
 import { useRouter } from "next/router";
 import { useEffect, useState } from "react";
+import { Bars3Icon } from "@heroicons/react/24/outline";
+import AuthButton from "../AuthButton";
 
 const navigationItems = [
   { href: "/tools", label: "Tools", match: (pathname) => pathname.startsWith("/tools") },
@@ -10,28 +12,8 @@ const navigationItems = [
 
 const cn = (...classes) => classes.filter(Boolean).join(" ");
 
-function BoltIcon() {
-  return (
-    <svg
-      aria-hidden="true"
-      viewBox="0 0 24 24"
-      className="h-4 w-4 fill-current"
-    >
-      <path d="M13.2 2.75a.75.75 0 0 0-.7.43L7.9 12.9a.75.75 0 0 0 .68 1.07h3.2l-1.34 7.11a.75.75 0 0 0 1.39.5l5.52-10.28a.75.75 0 0 0-.66-1.1h-3.08l1.85-6.47a.75.75 0 0 0-.72-.98H13.2Z" />
-    </svg>
-  );
-}
-
-function HamburgerIcon({ open }) {
-  return open ? (
-    <svg aria-hidden="true" viewBox="0 0 24 24" className="h-5 w-5 fill-none stroke-current stroke-2">
-      <path strokeLinecap="round" strokeLinejoin="round" d="M6 6l12 12M18 6L6 18" />
-    </svg>
-  ) : (
-    <svg aria-hidden="true" viewBox="0 0 24 24" className="h-5 w-5 fill-none stroke-current stroke-2">
-      <path strokeLinecap="round" strokeLinejoin="round" d="M4 7h16M4 12h16M4 17h16" />
-    </svg>
-  );
+function LogoMark() {
+  return <span aria-hidden="true" className="mr-2 inline-block h-2 w-2 bg-[#F59E0B]" />;
 }
 
 function NavLink({ href, label, active, onClick, mobile = false }) {
@@ -40,14 +22,34 @@ function NavLink({ href, label, active, onClick, mobile = false }) {
       href={href}
       onClick={onClick}
       className={cn(
-        "text-sm font-medium transition-colors duration-200",
-        mobile ? "block rounded-[var(--radius-md)] px-3 py-2" : "",
-        active
-          ? "text-[var(--color-brand)]"
-          : "text-[var(--color-text)] hover:text-[var(--color-brand)]"
+        "transition-colors duration-200",
+        mobile
+          ? "block w-full border-b border-[#1E1E2E] py-3 text-sm text-[#9CA3AF] hover:text-[#F8F8F2]"
+          : "border-b-2 pb-[2px] text-sm text-[#9CA3AF] hover:text-[#F8F8F2]",
+        active ? "border-[#F59E0B] text-[#F59E0B]" : "border-transparent"
       )}
     >
       {label}
+    </Link>
+  );
+}
+
+function MarketLink({ mobile = false, onClick }) {
+  return (
+    <Link
+      href="/tools/market-dashboard"
+      onClick={onClick}
+      className={cn(
+        "inline-flex items-center rounded-md bg-[#F59E0B] text-xs font-semibold text-black transition-colors duration-200 hover:bg-[#D97706]",
+        mobile ? "w-full justify-between px-3 py-2.5" : "px-3 py-1.5"
+      )}
+    >
+      <span className="inline-flex items-start gap-1.5">
+        <span>{"\u26A1"} Market</span>
+        <span className="inline-flex rounded-sm border border-[#F59E0B] bg-[#1A1A24] px-1 py-0.5 text-[9px] leading-none text-[#F59E0B]">
+          BETA
+        </span>
+      </span>
     </Link>
   );
 }
@@ -58,49 +60,34 @@ export default function Navbar() {
 
   useEffect(() => {
     setIsMenuOpen(false);
-  }, [router.asPath]);
-
-  const pathname = router.pathname;
+  }, [router.pathname]);
 
   return (
-    <header className="sticky top-0 z-50 bg-[var(--color-surface)]/95 backdrop-blur [border-bottom:var(--border-default)]">
-      <div className="mx-auto flex max-w-7xl items-center gap-3 px-4 py-3 sm:gap-4 sm:px-6 sm:py-4">
-        <Link href="/" className="flex min-w-0 items-center gap-3">
-          <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-[var(--radius-md)] bg-[var(--color-brand)] text-white shadow-sm sm:h-10 sm:w-10">
-            <BoltIcon />
-          </span>
-          <span className="truncate text-lg font-semibold tracking-[-0.03em] sm:text-xl">
-            <span className="text-[var(--color-text)]">volt</span>
-            <span className="text-[var(--color-brand)]">iq</span>
-          </span>
-        </Link>
+    <header className="sticky top-0 z-50 border-b border-[#1E1E2E] bg-[rgba(10,10,15,0.88)] backdrop-blur-[14px]">
+      <div className="relative mx-auto flex h-[60px] max-w-7xl items-center justify-between px-4 sm:px-6">
+        <div className="flex min-w-0 items-center">
+          <Link href="/" className="inline-flex items-center">
+            <LogoMark />
+            <span className="font-display text-[15px] font-bold tracking-[-0.03em] text-[#F8F8F2] sm:text-base">
+              VOLTIQ
+            </span>
+          </Link>
+        </div>
 
-        <nav className="hidden flex-1 items-center justify-center gap-8 md:flex">
+        <nav className="hidden items-center gap-8 md:flex">
           {navigationItems.map((item) => (
             <NavLink
               key={item.href}
               href={item.href}
               label={item.label}
-              active={item.match(pathname)}
+              active={item.match(router.pathname)}
             />
           ))}
         </nav>
 
-        <div className="hidden md:block">
-          <div className="flex items-center gap-3">
-            <Link
-              href="/report"
-              className="inline-flex items-center justify-center rounded-[var(--radius-md)] bg-[var(--color-brand)] px-4 py-2 text-sm font-semibold text-white transition-colors duration-200 hover:bg-[var(--color-brand-dark)]"
-            >
-              Generate Report
-            </Link>
-          <Link
-            href="/tools"
-            className="inline-flex items-center justify-center rounded-[var(--radius-md)] border border-[var(--color-brand)] px-4 py-2 text-sm font-semibold text-[var(--color-brand)] transition-colors duration-200 hover:bg-[var(--color-brand)] hover:text-white"
-          >
-            Start free
-          </Link>
-          </div>
+        <div className="hidden items-center gap-3 md:flex">
+          <MarketLink />
+          <AuthButton />
         </div>
 
         <button
@@ -108,46 +95,33 @@ export default function Navbar() {
           aria-label={isMenuOpen ? "Close navigation menu" : "Open navigation menu"}
           aria-expanded={isMenuOpen}
           onClick={() => setIsMenuOpen((open) => !open)}
-          className="ml-auto inline-flex shrink-0 items-center justify-center rounded-[var(--radius-md)] p-2 text-[var(--color-text)] transition-colors duration-200 hover:bg-[var(--color-overlay-subtle)] md:hidden"
+          className="inline-flex items-center justify-center rounded-md p-2 text-[#F8F8F2] transition-colors duration-200 hover:bg-[#111118] md:hidden"
         >
-          <HamburgerIcon open={isMenuOpen} />
+          <Bars3Icon className="h-5 w-5" />
         </button>
-      </div>
 
-      <div
-        className={cn(
-          "overflow-hidden px-4 transition-all duration-200 sm:px-6 md:hidden",
-          isMenuOpen
-            ? "max-h-80 pb-5 opacity-100 [border-top:var(--border-default)]"
-            : "max-h-0 pb-0 opacity-0"
-        )}
-      >
-        <nav className="flex flex-col gap-1 pt-3">
-          {navigationItems.map((item) => (
-            <NavLink
-              key={item.href}
-              href={item.href}
-              label={item.label}
-              active={item.match(pathname)}
-              onClick={() => setIsMenuOpen(false)}
-              mobile
-            />
-          ))}
-          <Link
-            href="/report"
-            onClick={() => setIsMenuOpen(false)}
-            className="mt-2 inline-flex items-center justify-center rounded-[var(--radius-md)] bg-[var(--color-brand)] px-4 py-3 text-sm font-semibold text-white transition-colors duration-200 hover:bg-[var(--color-brand-dark)]"
-          >
-            Generate Report
-          </Link>
-          <Link
-            href="/tools"
-            onClick={() => setIsMenuOpen(false)}
-            className="mt-2 inline-flex items-center justify-center rounded-[var(--radius-md)] border border-[var(--color-brand)] px-4 py-3 text-sm font-semibold text-[var(--color-brand)] transition-colors duration-200 hover:bg-[var(--color-brand)] hover:text-white"
-          >
-            Start free
-          </Link>
-        </nav>
+        {isMenuOpen ? (
+          <div className="absolute left-0 top-[60px] w-full border-b border-[#1E1E2E] bg-[#111118] p-4 md:hidden">
+            <nav className="flex flex-col">
+              {navigationItems.map((item) => (
+                <NavLink
+                  key={item.href}
+                  href={item.href}
+                  label={item.label}
+                  active={item.match(router.pathname)}
+                  onClick={() => setIsMenuOpen(false)}
+                  mobile
+                />
+              ))}
+              <div className="pt-4">
+                <MarketLink mobile onClick={() => setIsMenuOpen(false)} />
+              </div>
+              <div className="pt-4">
+                <AuthButton fullWidth />
+              </div>
+            </nav>
+          </div>
+        ) : null}
       </div>
     </header>
   );
