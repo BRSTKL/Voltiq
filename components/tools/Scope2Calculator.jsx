@@ -26,6 +26,8 @@ import {
   createToolReportSnapshot,
   saveToolReportResult,
 } from "../../lib/reportStorage";
+import useSavedCalculationRestore from "../../hooks/useSavedCalculationRestore";
+import SaveCalculationButton from "../SaveCalculationButton";
 import {
   EMISSION_FACTORS,
   calcIntensityMetrics,
@@ -643,6 +645,71 @@ export default function Scope2Calculator() {
   const differenceText = hasResults
     ? getMethodDifferenceText(results.locationBased, results.marketBased, results.reCoverage)
     : "";
+  const savedInputData = {
+    companyName,
+    reportingYear,
+    country,
+    multiCountry,
+    countryRows,
+    annualConsumptionMwh,
+    consumptionBreakdown,
+    recMwh,
+    ppaMwh,
+    greenTariffMwh,
+    ppaEmissionFactor,
+    revenueMillion,
+    employees,
+    floorAreaM2,
+    baseYear,
+    baseYearTco2,
+  };
+  const savedOutputData = {
+    results,
+    pdfData,
+    aiAnalysis,
+  };
+
+  useSavedCalculationRestore(
+    "scope2",
+    (savedCalculation) => {
+      const nextInputs = savedCalculation.inputData ?? {};
+      const nextOutput = savedCalculation.outputData ?? {};
+
+      setCompanyName(nextInputs.companyName ?? "");
+      setReportingYear(nextInputs.reportingYear ?? "2025");
+      setCountry(nextInputs.country ?? "Germany");
+      setMultiCountry(Boolean(nextInputs.multiCountry));
+      setCountryRows(
+        Array.isArray(nextInputs.countryRows) && nextInputs.countryRows.length
+          ? nextInputs.countryRows
+          : [{ id: 1, country: "Germany", consumptionMwh: 1000 }]
+      );
+      setAnnualConsumptionMwh(Number(nextInputs.annualConsumptionMwh ?? 1000));
+      setConsumptionBreakdown(
+        nextInputs.consumptionBreakdown ?? {
+          operations: 25,
+          manufacturing: 25,
+          dataCenters: 25,
+          offices: 25,
+        }
+      );
+      setRecMwh(Number(nextInputs.recMwh ?? 0));
+      setPpaMwh(Number(nextInputs.ppaMwh ?? 0));
+      setGreenTariffMwh(Number(nextInputs.greenTariffMwh ?? 0));
+      setPpaEmissionFactor(Number(nextInputs.ppaEmissionFactor ?? 0.01));
+      setRevenueMillion(Number(nextInputs.revenueMillion ?? 0));
+      setEmployees(Number(nextInputs.employees ?? 0));
+      setFloorAreaM2(Number(nextInputs.floorAreaM2 ?? 0));
+      setBaseYear(nextInputs.baseYear ?? "2020");
+      setBaseYearTco2(Number(nextInputs.baseYearTco2 ?? 0));
+      setResults(nextOutput.results ?? null);
+      setPdfData(nextOutput.pdfData ?? null);
+      setAiAnalysis(nextOutput.aiAnalysis ?? "");
+      setLoadingAI(false);
+      setError("");
+    },
+    setError
+  );
 
   useEffect(() => {
     if (!multiCountry && countryRows.length === 1) {
@@ -1242,7 +1309,7 @@ export default function Scope2Calculator() {
           </div>
 
           <div className="space-y-3">
-            <ActionButton onClick={handleCalculate} loading={loadingAI} variant="primary">
+            <ActionButton onClick={handleCalculate} loading={loadingAI} usageGuarded variant="primary">
               Calculate Scope 2
             </ActionButton>
             {loadingAI ? <LoadingIndicator message="AI is analyzing Scope 2 reporting context..." /> : null}
@@ -1461,6 +1528,13 @@ export default function Scope2Calculator() {
             data={pdfData}
             disabled={!hasResults || loadingAI || !pdfData}
           />
+          {hasResults ? (
+            <SaveCalculationButton
+              toolSlug="scope2"
+              inputData={savedInputData}
+              outputData={savedOutputData}
+            />
+          ) : null}
           {hasResults ? <ProjectReportCta /> : null}
         </div>
       </div>

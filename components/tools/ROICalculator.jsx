@@ -23,6 +23,8 @@ import {
   saveToolReportResult,
 } from "../../lib/reportStorage";
 import { calculateROIProjection } from "../../lib/roiCalc";
+import useSavedCalculationRestore from "../../hooks/useSavedCalculationRestore";
+import SaveCalculationButton from "../SaveCalculationButton";
 
 ChartJS.register(BarElement, CategoryScale, Legend, LinearScale, Tooltip);
 
@@ -179,6 +181,41 @@ export default function ROICalculator() {
 
   const hasResults = results.net25 !== null;
   const yearlyData = results.yearlyData?.length ? results.yearlyData : EMPTY_YEARLY_DATA;
+  const savedInputData = {
+    systemCost,
+    kWp,
+    annualYield,
+    tariff,
+    escalation,
+    selfConsumption,
+    degradation,
+  };
+  const savedOutputData = {
+    results,
+    pdfData,
+    summary,
+  };
+
+  useSavedCalculationRestore(
+    "roi",
+    (savedCalculation) => {
+      const nextInputs = savedCalculation.inputData ?? {};
+      const nextOutput = savedCalculation.outputData ?? {};
+
+      setSystemCost(Number(nextInputs.systemCost ?? 40000));
+      setKWp(Number(nextInputs.kWp ?? 10));
+      setAnnualYield(Number(nextInputs.annualYield ?? 1350));
+      setTariff(Number(nextInputs.tariff ?? 0.15));
+      setEscalation(Number(nextInputs.escalation ?? 5));
+      setSelfConsumption(Number(nextInputs.selfConsumption ?? 70));
+      setDegradation(Number(nextInputs.degradation ?? 0.5));
+      setResults(nextOutput.results ?? EMPTY_RESULTS);
+      setPdfData(nextOutput.pdfData ?? null);
+      setSummary(nextOutput.summary ?? "");
+      setError("");
+    },
+    setError
+  );
 
   const chartData = {
     labels: yearlyData.map((entry) => `Year ${entry.year}`),
@@ -330,7 +367,7 @@ export default function ROICalculator() {
           </div>
 
           <div className="space-y-3">
-            <ActionButton onClick={handleCalculate} variant="primary">
+            <ActionButton onClick={handleCalculate} usageGuarded variant="primary">
               Calculate
             </ActionButton>
             <p className="text-sm text-[var(--color-text-muted)]">
@@ -379,6 +416,13 @@ export default function ROICalculator() {
             data={pdfData}
             disabled={!hasResults || !pdfData}
           />
+          {hasResults ? (
+            <SaveCalculationButton
+              toolSlug="roi"
+              inputData={savedInputData}
+              outputData={savedOutputData}
+            />
+          ) : null}
           {hasResults ? <ProjectReportCta /> : null}
         </div>
       </div>

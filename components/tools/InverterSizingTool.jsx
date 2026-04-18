@@ -24,6 +24,8 @@ import {
   createToolReportSnapshot,
   saveToolReportResult,
 } from "../../lib/reportStorage";
+import useSavedCalculationRestore from "../../hooks/useSavedCalculationRestore";
+import SaveCalculationButton from "../SaveCalculationButton";
 import {
   INVERTER_PRESETS,
   MODULE_PRESETS,
@@ -745,6 +747,54 @@ export default function InverterSizingTool() {
       : { color: "#854F0B", bg: "#FAEEDA" }
     : null;
   const clippingAccent = hasResults ? getClippingStyle(results.clippingLossPct) : null;
+  const savedInputData = {
+    modulePreset,
+    customModule,
+    modulesPerString,
+    numStrings,
+    inverterPreset,
+    customInverter,
+    hotTemp,
+    coldTemp,
+    capacityFactor,
+  };
+  const savedOutputData = {
+    results,
+    pdfData,
+    aiAnalysis,
+  };
+
+  useSavedCalculationRestore(
+    "inverter-sizing",
+    (savedCalculation) => {
+      const nextInputs = savedCalculation.inputData ?? {};
+      const nextOutput = savedCalculation.outputData ?? {};
+
+      setModulePreset(nextInputs.modulePreset ?? "Generic 400W Mono-Si");
+      setCustomModule(
+        buildModuleForm(
+          nextInputs.customModule ?? MODULE_PRESETS["Generic 400W Mono-Si"]
+        )
+      );
+      setModulesPerString(Number(nextInputs.modulesPerString ?? 20));
+      setNumStrings(Number(nextInputs.numStrings ?? 10));
+      setInverterPreset(nextInputs.inverterPreset ?? "Generic 100kW Central");
+      setCustomInverter(
+        buildInverterForm(
+          nextInputs.customInverter ?? INVERTER_PRESETS["Generic 100kW Central"]
+        )
+      );
+      setHotTemp(Number(nextInputs.hotTemp ?? 70));
+      setColdTemp(Number(nextInputs.coldTemp ?? -10));
+      setCapacityFactor(Number(nextInputs.capacityFactor ?? 20));
+      setResults(nextOutput.results ?? null);
+      setPdfData(nextOutput.pdfData ?? null);
+      setAiAnalysis(nextOutput.aiAnalysis ?? "");
+      setLoadingAI(false);
+      setError("");
+    },
+    setError
+  );
 
   function clearComputedState(nextError = "") {
     setResults(null);
@@ -1152,7 +1202,7 @@ export default function InverterSizingTool() {
             </div>
           </div>
 
-          <ActionButton onClick={handleCalculate} loading={loadingAI}>
+          <ActionButton onClick={handleCalculate} loading={loadingAI} usageGuarded>
             Check configuration
           </ActionButton>
         </PanelCard>
@@ -1373,6 +1423,13 @@ export default function InverterSizingTool() {
             data={pdfData}
             disabled={!hasResults || loadingAI || !pdfData}
           />
+          {hasResults ? (
+            <SaveCalculationButton
+              toolSlug="inverter-sizing"
+              inputData={savedInputData}
+              outputData={savedOutputData}
+            />
+          ) : null}
         </div>
       </div>
     </section>

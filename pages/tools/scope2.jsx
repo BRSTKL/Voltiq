@@ -1,4 +1,5 @@
 import Head from "next/head";
+import ToolUsageGate from "../../components/ToolUsageGate";
 import Scope2Calculator from "@/components/tools/Scope2Calculator";
 
 export default function Scope2Page() {
@@ -12,7 +13,9 @@ export default function Scope2Page() {
         />
       </Head>
       <main className="max-w-6xl mx-auto px-4 py-8">
-        <Scope2Calculator />
+        <ToolUsageGate toolSlug="scope2">
+          <Scope2Calculator />
+        </ToolUsageGate>
       </main>
     </>
   );

@@ -16,6 +16,8 @@ import {
   createToolReportSnapshot,
   saveToolReportResult,
 } from "../../lib/reportStorage";
+import useSavedCalculationRestore from "../../hooks/useSavedCalculationRestore";
+import SaveCalculationButton from "../SaveCalculationButton";
 import {
   STATIC_CARBON_DATA,
   ZONE_CODES,
@@ -620,6 +622,39 @@ export default function CarbonIntensityTracker() {
 
   const periodMeta = getPeriodMeta(consumptionType);
   const compareOptions = COUNTRIES.filter((country) => country !== selectedCountry);
+  const savedInputData = {
+    selectedCountry,
+    compareCountry,
+    consumptionKwh,
+    consumptionType,
+  };
+  const savedOutputData = {
+    carbonData,
+    compareData,
+    isLive,
+    aiAnalysis,
+  };
+
+  useSavedCalculationRestore(
+    "carbon",
+    (savedCalculation) => {
+      const nextInputs = savedCalculation.inputData ?? {};
+      const nextOutput = savedCalculation.outputData ?? {};
+
+      setSelectedCountry(nextInputs.selectedCountry ?? "Germany");
+      setCompareCountry(nextInputs.compareCountry ?? "");
+      setConsumptionKwh(Number(nextInputs.consumptionKwh ?? 10));
+      setConsumptionType(nextInputs.consumptionType ?? "daily");
+      setCarbonData(nextOutput.carbonData ?? null);
+      setCompareData(nextOutput.compareData ?? null);
+      setIsLive(Boolean(nextOutput.isLive));
+      setAiAnalysis(nextOutput.aiAnalysis ?? "");
+      setLoading(false);
+      setLoadingAI(false);
+      setError("");
+    },
+    setError
+  );
 
   useEffect(() => {
     if (selectedCountry === compareCountry) {
@@ -965,7 +1000,7 @@ export default function CarbonIntensityTracker() {
               </div>
             </div>
 
-            <ActionButton onClick={handleAnalyze} loading={loadingAI} variant="primary">
+            <ActionButton onClick={handleAnalyze} loading={loadingAI} usageGuarded variant="primary">
               Analyze with AI
             </ActionButton>
             {loadingAI ? <LoadingIndicator message="AI is analyzing grid decarbonization..." /> : null}
@@ -1152,6 +1187,13 @@ export default function CarbonIntensityTracker() {
               data={pdfData}
               disabled={!pdfData}
             />
+            {pdfData ? (
+              <SaveCalculationButton
+                toolSlug="carbon"
+                inputData={savedInputData}
+                outputData={savedOutputData}
+              />
+            ) : null}
             {pdfData ? <ProjectReportCta /> : null}
           </div>
         )}

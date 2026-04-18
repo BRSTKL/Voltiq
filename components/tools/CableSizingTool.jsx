@@ -28,6 +28,8 @@ import {
   getGroupingFactor,
   getTempCorrectionFactor,
 } from "../../lib/cableCalc";
+import useSavedCalculationRestore from "../../hooks/useSavedCalculationRestore";
+import SaveCalculationButton from "../SaveCalculationButton";
 
 const DC_VOLTAGES = [12, 24, 48, 96, 120, 240, 380, 600, 1000, 1500];
 const AC_SINGLE_PHASE_VOLTAGES = [120, 230, 240];
@@ -506,6 +508,54 @@ export default function CableSizingTool() {
   const activeApplications = APPLICATION_OPTIONS[systemType];
   const activeApplicationMeta = getApplicationMeta(systemType, applicationType) || activeApplications[0];
   const hasResults = Boolean(results);
+  const savedInputData = {
+    systemType,
+    phases,
+    power,
+    voltage,
+    powerFactor,
+    cableLength,
+    conductorMaterial,
+    insulationType,
+    ambientTemp,
+    numCablesInBundle,
+    applicationType,
+    maxVoltageDropPct,
+    operatingHours,
+  };
+  const savedOutputData = {
+    results,
+    pdfData,
+    aiAnalysis,
+  };
+
+  useSavedCalculationRestore(
+    "cable",
+    (savedCalculation) => {
+      const nextInputs = savedCalculation.inputData ?? {};
+      const nextOutput = savedCalculation.outputData ?? {};
+
+      setSystemType(nextInputs.systemType ?? "dc");
+      setPhases(Number(nextInputs.phases ?? 1));
+      setPower(Number(nextInputs.power ?? 5000));
+      setVoltage(Number(nextInputs.voltage ?? 48));
+      setPowerFactor(Number(nextInputs.powerFactor ?? 0.85));
+      setCableLength(Number(nextInputs.cableLength ?? 20));
+      setConductorMaterial(nextInputs.conductorMaterial ?? "copper");
+      setInsulationType(nextInputs.insulationType ?? "xlpe");
+      setAmbientTemp(Number(nextInputs.ambientTemp ?? 30));
+      setNumCablesInBundle(Number(nextInputs.numCablesInBundle ?? 1));
+      setApplicationType(nextInputs.applicationType ?? "pv_dc");
+      setMaxVoltageDropPct(Number(nextInputs.maxVoltageDropPct ?? VD_LIMITS.pv_dc));
+      setOperatingHours(Number(nextInputs.operatingHours ?? 2000));
+      setResults(nextOutput.results ?? null);
+      setPdfData(nextOutput.pdfData ?? null);
+      setAiAnalysis(nextOutput.aiAnalysis ?? "");
+      setLoadingAI(false);
+      setError("");
+    },
+    setError
+  );
 
   function handleSystemTypeChange(nextSystemType) {
     setSystemType(nextSystemType);
@@ -874,7 +924,7 @@ export default function CableSizingTool() {
           </div>
 
           <div className="space-y-3">
-            <ActionButton onClick={handleCalculate} loading={loadingAI} variant="primary">
+            <ActionButton onClick={handleCalculate} loading={loadingAI} usageGuarded variant="primary">
               Calculate
             </ActionButton>
             {loadingAI ? (
@@ -1089,6 +1139,13 @@ export default function CableSizingTool() {
             data={pdfData}
             disabled={!hasResults || loadingAI || !pdfData}
           />
+          {hasResults ? (
+            <SaveCalculationButton
+              toolSlug="cable"
+              inputData={savedInputData}
+              outputData={savedOutputData}
+            />
+          ) : null}
           {hasResults ? <ProjectReportCta /> : null}
         </div>
       </div>

@@ -24,6 +24,8 @@ import {
   createToolReportSnapshot,
   saveToolReportResult,
 } from "../../lib/reportStorage";
+import useSavedCalculationRestore from "../../hooks/useSavedCalculationRestore";
+import SaveCalculationButton from "../SaveCalculationButton";
 import {
   calcArbitrageRevenue,
   calcBackupValue,
@@ -619,6 +621,80 @@ export default function StorageROICalculator() {
   const systemCost = batteryKwh * installedCostPerKwh;
   const annualOpex = systemCost * 0.01;
   const hasResults = Boolean(results);
+  const savedInputData = {
+    batteryKwh,
+    batteryKw,
+    technology,
+    customTech,
+    installedCostPerKwh,
+    peakEnabled,
+    demandChargePerkW,
+    peakReductionKw,
+    arbEnabled,
+    dailyCycles,
+    priceSpread,
+    backupEnabled,
+    criticalLoadKw,
+    backupHours,
+    outageCostPerHour,
+    outagesPerYear,
+    discountRate,
+    projectYears,
+    replacementYear,
+    replacementCost,
+  };
+  const savedOutputData = {
+    results,
+    pdfData,
+    aiAnalysis,
+  };
+
+  useSavedCalculationRestore(
+    "storage-roi",
+    (savedCalculation) => {
+      const nextInputs = savedCalculation.inputData ?? {};
+      const nextOutput = savedCalculation.outputData ?? {};
+
+      setBatteryKwh(Number(nextInputs.batteryKwh ?? 100));
+      setBatteryKw(Number(nextInputs.batteryKw ?? 50));
+      setTechnology(nextInputs.technology ?? "lfp");
+      setCustomTech(
+        nextInputs.customTech ?? {
+          roundTripEfficiency: TECHNOLOGY_PRESETS.custom.roundTripEfficiency,
+          degradationRate: TECHNOLOGY_PRESETS.custom.degradationRate,
+          technologyLifeYears: TECHNOLOGY_PRESETS.custom.technologyLifeYears,
+          costPerKwh: TECHNOLOGY_PRESETS.custom.costPerKwh,
+        }
+      );
+      setInstalledCostPerKwh(Number(nextInputs.installedCostPerKwh ?? TECHNOLOGY_PRESETS.lfp.costPerKwh));
+      setPeakEnabled(Boolean(nextInputs.peakEnabled ?? true));
+      setDemandChargePerkW(Number(nextInputs.demandChargePerkW ?? 12));
+      setPeakReductionKw(Number(nextInputs.peakReductionKw ?? 30));
+      setArbEnabled(Boolean(nextInputs.arbEnabled ?? true));
+      setDailyCycles(Number(nextInputs.dailyCycles ?? 1));
+      setPriceSpread(Number(nextInputs.priceSpread ?? 0.12));
+      setBackupEnabled(Boolean(nextInputs.backupEnabled ?? true));
+      setCriticalLoadKw(Number(nextInputs.criticalLoadKw ?? 50));
+      setBackupHours(Number(nextInputs.backupHours ?? 2));
+      setOutageCostPerHour(Number(nextInputs.outageCostPerHour ?? 500));
+      setOutagesPerYear(Number(nextInputs.outagesPerYear ?? 4));
+      setDiscountRate(Number(nextInputs.discountRate ?? 8));
+      setProjectYears(Number(nextInputs.projectYears ?? 15));
+      setReplacementYear(Number(nextInputs.replacementYear ?? 10));
+      setReplacementCost(
+        Number(
+          nextInputs.replacementCost ??
+            100 * TECHNOLOGY_PRESETS.lfp.costPerKwh * 0.4
+        )
+      );
+      setResults(nextOutput.results ?? null);
+      setPdfData(nextOutput.pdfData ?? null);
+      setAiAnalysis(nextOutput.aiAnalysis ?? "");
+      setLoadingAI(false);
+      setError("");
+    },
+    setError
+  );
 
   const revenueSummaryCards = hasResults
     ? [
@@ -1305,7 +1381,7 @@ export default function StorageROICalculator() {
           </div>
 
           <div className="space-y-3">
-            <ActionButton onClick={handleCalculate} loading={loadingAI} variant="primary">
+            <ActionButton onClick={handleCalculate} loading={loadingAI} usageGuarded variant="primary">
               Calculate ROI
             </ActionButton>
             <p className="text-sm text-[var(--color-text-muted)]">
@@ -1460,6 +1536,13 @@ export default function StorageROICalculator() {
             data={pdfData}
             disabled={!hasResults || loadingAI || !pdfData}
           />
+          {hasResults ? (
+            <SaveCalculationButton
+              toolSlug="storage-roi"
+              inputData={savedInputData}
+              outputData={savedOutputData}
+            />
+          ) : null}
           {hasResults ? <ProjectReportCta /> : null}
         </div>
       </div>

@@ -1,4 +1,5 @@
 import Head from "next/head";
+import ToolUsageGate from "../../components/ToolUsageGate";
 import CableSizingTool from "../../components/tools/CableSizingTool";
 
 export default function CableToolPage() {
@@ -11,7 +12,9 @@ export default function CableToolPage() {
           content="DC and AC cable cross-section sizing per IEC 60364. Voltage drop, ampacity derating, and annual energy loss for renewable energy systems."
         />
       </Head>
-      <CableSizingTool />
+      <ToolUsageGate toolSlug="cable">
+        <CableSizingTool />
+      </ToolUsageGate>
     </>
   );
 }

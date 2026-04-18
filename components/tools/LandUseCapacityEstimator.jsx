@@ -28,6 +28,8 @@ import {
   createToolReportSnapshot,
   saveToolReportResult,
 } from "../../lib/reportStorage";
+import useSavedCalculationRestore from "../../hooks/useSavedCalculationRestore";
+import SaveCalculationButton from "../SaveCalculationButton";
 
 const INPUT_CLASS_NAME =
   "min-h-[48px] w-full rounded-[var(--radius-md)] bg-[var(--color-surface)] px-4 text-sm text-[var(--color-text)] outline-none transition-shadow [border:var(--border-default)] placeholder:text-[var(--color-text-muted)] focus:ring-2 focus:ring-[var(--color-brand)]";
@@ -387,6 +389,48 @@ export default function LandUseCapacityEstimator() {
   const panelInfoArea =
     activePanel.width > 0 && activePanel.height > 0 ? activePanel.width * activePanel.height : 0;
 
+  const hasResults = Boolean(results);
+  const savedInputData = {
+    landAreaValue,
+    landAreaUnit,
+    unusableRatio,
+    panelPresetId,
+    customPanelWatt,
+    customPanelWidth,
+    customPanelHeight,
+    panelsPerString,
+    inverterPresetId,
+  };
+  const savedOutputData = {
+    results,
+    pdfData,
+    aiAnalysis,
+  };
+
+  useSavedCalculationRestore(
+    "land-use-capacity",
+    (savedCalculation) => {
+      const nextInputs = savedCalculation.inputData ?? {};
+      const nextOutput = savedCalculation.outputData ?? {};
+
+      setLandAreaValue(String(nextInputs.landAreaValue ?? "5"));
+      setLandAreaUnit(nextInputs.landAreaUnit ?? "ha");
+      setUnusableRatio(Number(nextInputs.unusableRatio ?? 15));
+      setPanelPresetId(nextInputs.panelPresetId ?? "standard_450");
+      setCustomPanelWatt(String(nextInputs.customPanelWatt ?? "450"));
+      setCustomPanelWidth(String(nextInputs.customPanelWidth ?? "1.134"));
+      setCustomPanelHeight(String(nextInputs.customPanelHeight ?? "2.094"));
+      setPanelsPerString(String(nextInputs.panelsPerString ?? "20"));
+      setInverterPresetId(nextInputs.inverterPresetId ?? "inv_250");
+      setResults(nextOutput.results ?? null);
+      setPdfData(nextOutput.pdfData ?? null);
+      setAiAnalysis(nextOutput.aiAnalysis ?? "");
+      setIsCalculating(false);
+      setError("");
+    },
+    setError
+  );
+
   async function handleCalculate() {
     setError("");
     setAiAnalysis("");
@@ -653,7 +697,7 @@ export default function LandUseCapacityEstimator() {
             />
           </PanelCard>
 
-          <ActionButton onClick={handleCalculate} loading={isCalculating}>
+          <ActionButton onClick={handleCalculate} loading={isCalculating} usageGuarded>
             Calculate
           </ActionButton>
         </div>
@@ -860,6 +904,13 @@ export default function LandUseCapacityEstimator() {
                 data={pdfData}
                 disabled={!results || !pdfData || isCalculating}
               />
+              {hasResults ? (
+                <SaveCalculationButton
+                  toolSlug="land-use-capacity"
+                  inputData={savedInputData}
+                  outputData={savedOutputData}
+                />
+              ) : null}
             </div>
           </div>
         </div>

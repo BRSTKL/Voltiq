@@ -1,4 +1,5 @@
 import Head from "next/head";
+import ToolUsageGate from "../../components/ToolUsageGate";
 import LCOEComparator from "@/components/tools/LCOEComparator";
 
 export default function LCOEPage() {
@@ -11,7 +12,9 @@ export default function LCOEPage() {
           content="Compare levelized cost of energy (LCOE) for solar, wind, gas and nuclear. CAPEX breakdown, sensitivity analysis and carbon pricing impact."
         />
       </Head>
-      <LCOEComparator />
+      <ToolUsageGate toolSlug="lcoe">
+        <LCOEComparator />
+      </ToolUsageGate>
     </>
   );
 }

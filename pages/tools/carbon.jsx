@@ -1,4 +1,5 @@
 import Head from "next/head";
+import ToolUsageGate from "../../components/ToolUsageGate";
 import CarbonIntensityTracker from "@/components/tools/CarbonIntensityTracker";
 
 export default function CarbonPage() {
@@ -12,7 +13,9 @@ export default function CarbonPage() {
         />
       </Head>
       <main className="max-w-6xl mx-auto px-4 py-8">
-        <CarbonIntensityTracker />
+        <ToolUsageGate toolSlug="carbon">
+          <CarbonIntensityTracker />
+        </ToolUsageGate>
       </main>
     </>
   );

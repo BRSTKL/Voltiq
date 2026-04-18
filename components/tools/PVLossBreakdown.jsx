@@ -27,6 +27,8 @@ import {
   createToolReportSnapshot,
   saveToolReportResult,
 } from "../../lib/reportStorage";
+import useSavedCalculationRestore from "../../hooks/useSavedCalculationRestore";
+import SaveCalculationButton from "../SaveCalculationButton";
 import { calcLossByCategory, calcLossChain } from "../../lib/pvLossCalc";
 
 ChartJS.register(
@@ -359,6 +361,68 @@ export default function PVLossBreakdown() {
   const isBusy = loading || loadingLocation;
   const liveAnnualIrradiance = avgIrradiance === null ? null : avgIrradiance * 365;
   const prStatus = hasResults ? getPrStatus(results.prPercent) : null;
+  const savedInputData = {
+    city,
+    avgIrradiance,
+    systemKwp,
+    tilt,
+    azimuth,
+    shadingLossPct,
+    soilingLossPct,
+    reflectionLossPct,
+    spectralLossPct,
+    tempCoefficient,
+    avgOperatingTemp,
+    moduleQualityPct,
+    dcWiringLossPct,
+    inverterEffPct,
+    acWiringLossPct,
+    transformerLossPct,
+    availabilityPct,
+  };
+  const savedOutputData = {
+    results,
+    pdfData,
+    aiAnalysis,
+  };
+
+  useSavedCalculationRestore(
+    "pv-loss",
+    (savedCalculation) => {
+      const nextInputs = savedCalculation.inputData ?? {};
+      const nextOutput = savedCalculation.outputData ?? {};
+
+      setCity(nextInputs.city ?? "");
+      setAvgIrradiance(
+        nextInputs.avgIrradiance === null || nextInputs.avgIrradiance === undefined
+          ? null
+          : Number(nextInputs.avgIrradiance)
+      );
+      setSystemKwp(Number(nextInputs.systemKwp ?? 10));
+      setTilt(Number(nextInputs.tilt ?? 30));
+      setAzimuth(Number(nextInputs.azimuth ?? 0));
+      setShadingLossPct(Number(nextInputs.shadingLossPct ?? 3));
+      setSoilingLossPct(Number(nextInputs.soilingLossPct ?? 2));
+      setReflectionLossPct(Number(nextInputs.reflectionLossPct ?? 3));
+      setSpectralLossPct(Number(nextInputs.spectralLossPct ?? 1.5));
+      setTempCoefficient(Number(nextInputs.tempCoefficient ?? -0.35));
+      setAvgOperatingTemp(Number(nextInputs.avgOperatingTemp ?? 25));
+      setModuleQualityPct(Number(nextInputs.moduleQualityPct ?? 2));
+      setDcWiringLossPct(Number(nextInputs.dcWiringLossPct ?? 1.5));
+      setInverterEffPct(Number(nextInputs.inverterEffPct ?? 97));
+      setAcWiringLossPct(Number(nextInputs.acWiringLossPct ?? 0.5));
+      setTransformerLossPct(Number(nextInputs.transformerLossPct ?? 0.5));
+      setAvailabilityPct(Number(nextInputs.availabilityPct ?? 99));
+      setResults(nextOutput.results ?? null);
+      setPdfData(nextOutput.pdfData ?? null);
+      setAiAnalysis(nextOutput.aiAnalysis ?? "");
+      setLoading(false);
+      setLoadingAI(false);
+      setLoadingLocation(false);
+      setError("");
+    },
+    setError
+  );
 
   const waterfallRows = useMemo(() => buildWaterfallRows(results), [results]);
 
@@ -1004,7 +1068,7 @@ export default function PVLossBreakdown() {
           </div>
 
           <div className="space-y-3">
-            <ActionButton onClick={handleCalculateLosses} loading={isBusy} variant="primary">
+            <ActionButton onClick={handleCalculateLosses} loading={isBusy} usageGuarded variant="primary">
               Calculate losses
             </ActionButton>
             {loadingAI ? (
@@ -1175,6 +1239,13 @@ export default function PVLossBreakdown() {
             data={pdfData}
             disabled={!hasResults || loadingAI || !pdfData}
           />
+          {hasResults ? (
+            <SaveCalculationButton
+              toolSlug="pv-loss"
+              inputData={savedInputData}
+              outputData={savedOutputData}
+            />
+          ) : null}
         </div>
       </div>
     </section>

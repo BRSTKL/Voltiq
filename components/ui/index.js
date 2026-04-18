@@ -1,4 +1,7 @@
 import Link from "next/link";
+import { useState } from "react";
+
+import { useToolUsageGate } from "../ToolUsageGate";
 
 const cn = (...classes) => classes.filter(Boolean).join(" ");
 
@@ -74,7 +77,10 @@ export function ActionButton({
   loading = false,
   variant = "primary",
   type = "button",
+  usageGuarded = false,
 }) {
+  const toolUsageGate = useToolUsageGate();
+  const [usagePending, setUsagePending] = useState(false);
   const isPrimary = variant === "primary";
   const buttonClasses = isPrimary
     ? "bg-[var(--color-brand)] text-[var(--color-inverse)] hover:bg-[var(--color-brand-dark)]"
@@ -82,19 +88,46 @@ export function ActionButton({
   const spinnerClasses = isPrimary
     ? "border-white/25 border-t-white"
     : "border-[var(--color-spinner-track)] border-t-[var(--color-text)]";
+  const isBusy = loading || usagePending;
+  const isDisabled =
+    isBusy || (usageGuarded && toolUsageGate ? toolUsageGate.isBlocked : false);
+
+  async function handleClick(event) {
+    if (isDisabled) {
+      return;
+    }
+
+    if (usageGuarded && toolUsageGate) {
+      setUsagePending(true);
+
+      try {
+        const result = await toolUsageGate.requestUsageAccess();
+
+        if (!result.allowed) {
+          return;
+        }
+      } finally {
+        setUsagePending(false);
+      }
+    }
+
+    if (onClick) {
+      await onClick(event);
+    }
+  }
 
   return (
     <button
       type={type}
-      onClick={onClick}
-      disabled={loading}
-      aria-busy={loading}
+      onClick={handleClick}
+      disabled={isDisabled}
+      aria-busy={isBusy}
       className={cn(
         "inline-flex w-full items-center justify-center gap-2 rounded-[var(--radius-md)] px-4 py-3 text-sm font-semibold transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-[var(--color-brand)] focus:ring-offset-2 focus:ring-offset-[var(--color-surface)] disabled:cursor-not-allowed disabled:opacity-70",
         buttonClasses
       )}
     >
-      {loading ? (
+      {isBusy ? (
         <span
           aria-hidden="true"
           className={cn("h-4 w-4 animate-spin rounded-full border-2", spinnerClasses)}

@@ -1,5 +1,10 @@
+import ToolUsageGate from "../../components/ToolUsageGate";
 import BatteryStorageSizer from "../../components/tools/BatteryStorageSizer";
 
 export default function BatteryToolPage() {
-  return <BatteryStorageSizer />;
+  return (
+    <ToolUsageGate toolSlug="battery">
+      <BatteryStorageSizer />
+    </ToolUsageGate>
+  );
 }

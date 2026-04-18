@@ -1,4 +1,5 @@
 import Head from "next/head";
+import ToolUsageGate from "../../components/ToolUsageGate";
 import InverterSizingTool from "@/components/tools/InverterSizingTool";
 
 export default function InverterSizingPage() {
@@ -11,7 +12,9 @@ export default function InverterSizingPage() {
           content="PV inverter sizing with string voltage checks, DC/AC ratio optimization, clipping estimates, and AI engineering review."
         />
       </Head>
-      <InverterSizingTool />
+      <ToolUsageGate toolSlug="inverter-sizing">
+        <InverterSizingTool />
+      </ToolUsageGate>
     </>
   );
 }

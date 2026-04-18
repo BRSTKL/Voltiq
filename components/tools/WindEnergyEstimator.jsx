@@ -27,6 +27,8 @@ import {
   saveToolReportResult,
 } from "../../lib/reportStorage";
 import { calculateWindEnergy, WIND_TURBINES } from "../../lib/windCalc";
+import useSavedCalculationRestore from "../../hooks/useSavedCalculationRestore";
+import SaveCalculationButton from "../SaveCalculationButton";
 
 ChartJS.register(
   BarElement,
@@ -333,6 +335,65 @@ export default function WindEnergyEstimator() {
   const isBusy = loadingLocation || loadingWind;
   const hasWindData = hourlyWind10m.length > 0;
   const hasResults = results.annualMWh !== null;
+  const savedInputData = {
+    city,
+    lat,
+    lon,
+    hourlyWind10m,
+    monthlyWind10m,
+    avgWind10m,
+    turbineKey,
+    numTurbines,
+    hubHeight,
+    alpha,
+    losses,
+  };
+  const savedOutputData = {
+    results,
+    pdfData,
+    summary,
+  };
+
+  useSavedCalculationRestore(
+    "wind",
+    (savedCalculation) => {
+      const nextInputs = savedCalculation.inputData ?? {};
+      const nextOutput = savedCalculation.outputData ?? {};
+
+      setCity(nextInputs.city ?? "");
+      setLat(
+        nextInputs.lat === null || nextInputs.lat === undefined
+          ? null
+          : Number(nextInputs.lat)
+      );
+      setLon(
+        nextInputs.lon === null || nextInputs.lon === undefined
+          ? null
+          : Number(nextInputs.lon)
+      );
+      setHourlyWind10m(
+        Array.isArray(nextInputs.hourlyWind10m) ? nextInputs.hourlyWind10m : []
+      );
+      setMonthlyWind10m(
+        Array.isArray(nextInputs.monthlyWind10m) ? nextInputs.monthlyWind10m : []
+      );
+      setAvgWind10m(
+        nextInputs.avgWind10m === null || nextInputs.avgWind10m === undefined
+          ? null
+          : Number(nextInputs.avgWind10m)
+      );
+      setTurbineKey(nextInputs.turbineKey ?? "vestasV90");
+      setNumTurbines(Number(nextInputs.numTurbines ?? 3));
+      setHubHeight(Number(nextInputs.hubHeight ?? 80));
+      setAlpha(Number(nextInputs.alpha ?? 0.143));
+      setLosses(Number(nextInputs.losses ?? 8));
+      setResults(nextOutput.results ?? EMPTY_RESULTS);
+      setPdfData(nextOutput.pdfData ?? null);
+      setSummary(nextOutput.summary ?? "");
+      setError("");
+    },
+    setError
+  );
 
   const monthlyChartData = {
     labels: MONTH_LABELS,
@@ -657,7 +718,7 @@ export default function WindEnergyEstimator() {
               </div>
 
               <div className="space-y-3">
-                <ActionButton onClick={handleCalculate} variant="primary">
+                <ActionButton onClick={handleCalculate} usageGuarded variant="primary">
                   Calculate
                 </ActionButton>
                 <p className="text-sm text-[var(--color-text-muted)]">
@@ -731,6 +792,13 @@ export default function WindEnergyEstimator() {
             data={pdfData}
             disabled={!hasResults || !pdfData}
           />
+          {hasResults ? (
+            <SaveCalculationButton
+              toolSlug="wind"
+              inputData={savedInputData}
+              outputData={savedOutputData}
+            />
+          ) : null}
           {hasResults ? <ProjectReportCta /> : null}
         </div>
       </div>

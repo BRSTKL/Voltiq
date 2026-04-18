@@ -1,4 +1,5 @@
 import Head from "next/head";
+import ToolUsageGate from "../../components/ToolUsageGate";
 import LandUseCapacityEstimator from "../../components/tools/LandUseCapacityEstimator";
 
 export default function LandUseCapacityPage() {
@@ -11,7 +12,9 @@ export default function LandUseCapacityPage() {
           content="Maximum installable capacity, panel count, and inverter pre-sizing from land area."
         />
       </Head>
-      <LandUseCapacityEstimator />
+      <ToolUsageGate toolSlug="land-use-capacity">
+        <LandUseCapacityEstimator />
+      </ToolUsageGate>
     </>
   );
 }

@@ -31,6 +31,8 @@ import {
   createToolReportSnapshot,
   saveToolReportResult,
 } from "../../lib/reportStorage";
+import useSavedCalculationRestore from "../../hooks/useSavedCalculationRestore";
+import SaveCalculationButton from "../SaveCalculationButton";
 import {
   calcGridScore,
   calcLandRequirement,
@@ -433,6 +435,67 @@ export default function SiteAssessmentTool() {
   const scoreAccent = hasResults
     ? { bg: results.classification.bg, color: results.classification.color }
     : null;
+  const savedInputData = {
+    city,
+    lat,
+    lon,
+    avgIrradiance,
+    systemSizeMW,
+    gridDistanceKm,
+    slopePercent,
+    landType,
+    panelEfficiency,
+    protectedArea,
+    nearAirport,
+    gridPolicy,
+    permittingTimeMonths,
+  };
+  const savedOutputData = {
+    results,
+    pdfData,
+    aiAnalysis,
+  };
+
+  useSavedCalculationRestore(
+    "site-assessment",
+    (savedCalculation) => {
+      const nextInputs = savedCalculation.inputData ?? {};
+      const nextOutput = savedCalculation.outputData ?? {};
+
+      setCity(nextInputs.city ?? "");
+      setLat(
+        nextInputs.lat === null || nextInputs.lat === undefined
+          ? null
+          : Number(nextInputs.lat)
+      );
+      setLon(
+        nextInputs.lon === null || nextInputs.lon === undefined
+          ? null
+          : Number(nextInputs.lon)
+      );
+      setAvgIrradiance(
+        nextInputs.avgIrradiance === null || nextInputs.avgIrradiance === undefined
+          ? null
+          : Number(nextInputs.avgIrradiance)
+      );
+      setSystemSizeMW(Number(nextInputs.systemSizeMW ?? 1));
+      setGridDistanceKm(Number(nextInputs.gridDistanceKm ?? 5));
+      setSlopePercent(Number(nextInputs.slopePercent ?? 3));
+      setLandType(nextInputs.landType ?? "flat_open");
+      setPanelEfficiency(Number(nextInputs.panelEfficiency ?? 21));
+      setProtectedArea(Boolean(nextInputs.protectedArea));
+      setNearAirport(Boolean(nextInputs.nearAirport));
+      setGridPolicy(nextInputs.gridPolicy ?? "moderate");
+      setPermittingTimeMonths(Number(nextInputs.permittingTimeMonths ?? 12));
+      setResults(nextOutput.results ?? null);
+      setPdfData(nextOutput.pdfData ?? null);
+      setAiAnalysis(nextOutput.aiAnalysis ?? "");
+      setLoadingLocation(false);
+      setLoadingAI(false);
+      setError("");
+    },
+    setError
+  );
 
   async function handleFetchSolarData() {
     const query = city.trim();
@@ -868,6 +931,7 @@ export default function SiteAssessmentTool() {
             <ActionButton
               onClick={handleAssessSite}
               loading={loadingLocation || loadingAI}
+              usageGuarded
               variant="primary"
             >
               Assess site
@@ -993,6 +1057,13 @@ export default function SiteAssessmentTool() {
             data={pdfData}
             disabled={!hasResults || loadingAI || !pdfData}
           />
+          {hasResults ? (
+            <SaveCalculationButton
+              toolSlug="site-assessment"
+              inputData={savedInputData}
+              outputData={savedOutputData}
+            />
+          ) : null}
         </div>
       </div>
     </section>

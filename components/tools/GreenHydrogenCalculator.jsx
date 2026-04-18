@@ -31,6 +31,8 @@ import {
   calcLCOH,
   calcStackReplacement,
 } from "../../lib/hydrogenCalc";
+import useSavedCalculationRestore from "../../hooks/useSavedCalculationRestore";
+import SaveCalculationButton from "../SaveCalculationButton";
 
 ChartJS.register(ArcElement, Tooltip, Legend);
 
@@ -375,6 +377,50 @@ export default function GreenHydrogenCalculator() {
   const sensitivityRows = hasResults
     ? buildSensitivityRows(results)
     : SENSITIVITY_PRICES.map((price) => ({ price, lcoh: null }));
+  const savedInputData = {
+    electType,
+    ratedMW,
+    efficiency,
+    capacityFactor,
+    electricitySource,
+    electricityPrice,
+    projectLifetime,
+    discountRate,
+    includesStorage,
+    includesCompressor,
+  };
+  const savedOutputData = {
+    results,
+    pdfData,
+    aiAnalysis,
+  };
+
+  useSavedCalculationRestore(
+    "hydrogen",
+    (savedCalculation) => {
+      const nextInputs = savedCalculation.inputData ?? {};
+      const nextOutput = savedCalculation.outputData ?? {};
+
+      setElectType(nextInputs.electType ?? "pem");
+      setRatedMW(Number(nextInputs.ratedMW ?? 5));
+      setEfficiency(
+        Number(nextInputs.efficiency ?? ELECTROLYZER_OPTIONS.pem.efficiency)
+      );
+      setCapacityFactor(Number(nextInputs.capacityFactor ?? 45));
+      setElectricitySource(nextInputs.electricitySource ?? "solar");
+      setElectricityPrice(Number(nextInputs.electricityPrice ?? 40));
+      setProjectLifetime(Number(nextInputs.projectLifetime ?? 20));
+      setDiscountRate(Number(nextInputs.discountRate ?? 8));
+      setIncludesStorage(Boolean(nextInputs.includesStorage));
+      setIncludesCompressor(Boolean(nextInputs.includesCompressor));
+      setResults(nextOutput.results ?? null);
+      setPdfData(nextOutput.pdfData ?? null);
+      setAiAnalysis(nextOutput.aiAnalysis ?? "");
+      setLoadingAI(false);
+      setError("");
+    },
+    setError
+  );
 
   const doughnutData = {
     labels: ["CAPEX", "OPEX", "Electricity", "Stack replacement"],
@@ -653,7 +699,7 @@ export default function GreenHydrogenCalculator() {
           </div>
 
           <div className="space-y-3">
-            <ActionButton onClick={handleCalculate} loading={loadingAI} variant="primary">
+            <ActionButton onClick={handleCalculate} loading={loadingAI} usageGuarded variant="primary">
               Calculate LCOH -&gt;
             </ActionButton>
             {loadingAI ? <LoadingIndicator message="AI is analyzing hydrogen economics..." /> : null}
@@ -819,6 +865,13 @@ export default function GreenHydrogenCalculator() {
             data={pdfData}
             disabled={!hasResults || loadingAI || !pdfData}
           />
+          {hasResults ? (
+            <SaveCalculationButton
+              toolSlug="hydrogen"
+              inputData={savedInputData}
+              outputData={savedOutputData}
+            />
+          ) : null}
           {hasResults ? <ProjectReportCta /> : null}
         </div>
       </div>

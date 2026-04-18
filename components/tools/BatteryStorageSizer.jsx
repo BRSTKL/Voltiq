@@ -14,6 +14,8 @@ import {
   saveToolReportResult,
 } from "../../lib/reportStorage";
 import { calculateBatterySizing } from "../../lib/batteryCalc";
+import useSavedCalculationRestore from "../../hooks/useSavedCalculationRestore";
+import SaveCalculationButton from "../SaveCalculationButton";
 
 const EMPTY_RESULTS = {
   nightLoad: null,
@@ -178,6 +180,39 @@ export default function BatteryStorageSizer() {
 
   const hasResults = results.nominalCapacity !== null;
   const dodPercentage = results.dod ? Math.round(results.dod * 100) : 0;
+  const savedInputData = {
+    consumption,
+    nightRatio,
+    autonomy,
+    solarSize,
+    battType,
+    voltage,
+  };
+  const savedOutputData = {
+    results,
+    pdfData,
+    summary,
+  };
+
+  useSavedCalculationRestore(
+    "battery",
+    (savedCalculation) => {
+      const nextInputs = savedCalculation.inputData ?? {};
+      const nextOutput = savedCalculation.outputData ?? {};
+
+      setConsumption(Number(nextInputs.consumption ?? 10));
+      setNightRatio(Number(nextInputs.nightRatio ?? 40));
+      setAutonomy(Number(nextInputs.autonomy ?? 1));
+      setSolarSize(Number(nextInputs.solarSize ?? 5));
+      setBattType(nextInputs.battType ?? "lfp");
+      setVoltage(Number(nextInputs.voltage ?? 48));
+      setResults(nextOutput.results ?? EMPTY_RESULTS);
+      setPdfData(nextOutput.pdfData ?? null);
+      setSummary(nextOutput.summary ?? "");
+      setError("");
+    },
+    setError
+  );
 
   async function handleCalculateAndAnalyze() {
     setError("");
@@ -325,7 +360,7 @@ export default function BatteryStorageSizer() {
           </div>
 
           <div className="space-y-3">
-            <ActionButton onClick={handleCalculateAndAnalyze} variant="primary">
+            <ActionButton onClick={handleCalculateAndAnalyze} usageGuarded variant="primary">
               Calculate
             </ActionButton>
             <p className="text-sm text-[var(--color-text-muted)]">
@@ -403,6 +438,13 @@ export default function BatteryStorageSizer() {
             data={pdfData}
             disabled={!hasResults || !pdfData}
           />
+          {hasResults ? (
+            <SaveCalculationButton
+              toolSlug="battery"
+              inputData={savedInputData}
+              outputData={savedOutputData}
+            />
+          ) : null}
           {hasResults ? <ProjectReportCta /> : null}
         </div>
       </div>

@@ -23,6 +23,8 @@ import {
   saveToolReportResult,
 } from "../../lib/reportStorage";
 import { calculateShadingLoss } from "../../lib/shadingCalc";
+import useSavedCalculationRestore from "../../hooks/useSavedCalculationRestore";
+import SaveCalculationButton from "../SaveCalculationButton";
 
 ChartJS.register(BarElement, CategoryScale, Legend, LinearScale, Tooltip);
 
@@ -351,6 +353,39 @@ export default function ShadingLossAnalyzer() {
   const [pdfData, setPdfData] = useState(null);
   const [summary, setSummary] = useState("");
   const [error, setError] = useState("");
+  const savedInputData = {
+    kWp,
+    tilt,
+    latitude,
+    baseYield,
+    inverterType,
+    obstacles,
+  };
+  const savedOutputData = {
+    results,
+    pdfData,
+    summary,
+  };
+
+  useSavedCalculationRestore(
+    "shading",
+    (savedCalculation) => {
+      const nextInputs = savedCalculation.inputData ?? {};
+      const nextOutput = savedCalculation.outputData ?? {};
+
+      setKWp(Number(nextInputs.kWp ?? 10));
+      setTilt(Number(nextInputs.tilt ?? 30));
+      setLatitude(Number(nextInputs.latitude ?? 45));
+      setBaseYield(Number(nextInputs.baseYield ?? 1350));
+      setInverterType(nextInputs.inverterType ?? "string");
+      setObstacles(Array.isArray(nextInputs.obstacles) ? nextInputs.obstacles : DEFAULT_OBSTACLES);
+      setResults(nextOutput.results ?? EMPTY_RESULTS);
+      setPdfData(nextOutput.pdfData ?? null);
+      setSummary(nextOutput.summary ?? "");
+      setError("");
+    },
+    setError
+  );
 
   let previewGeometry = EMPTY_RESULTS;
 
@@ -621,7 +656,7 @@ export default function ShadingLossAnalyzer() {
           </div>
 
           <div className="space-y-3">
-            <ActionButton onClick={handleCalculate} variant="primary">
+            <ActionButton onClick={handleCalculate} usageGuarded variant="primary">
               Calculate
             </ActionButton>
             <p className="text-sm text-[var(--color-text-muted)]">
@@ -692,6 +727,13 @@ export default function ShadingLossAnalyzer() {
             data={pdfData}
             disabled={!hasResults || !pdfData}
           />
+          {hasResults ? (
+            <SaveCalculationButton
+              toolSlug="shading"
+              inputData={savedInputData}
+              outputData={savedOutputData}
+            />
+          ) : null}
           {hasResults ? <ProjectReportCta /> : null}
         </div>
       </div>

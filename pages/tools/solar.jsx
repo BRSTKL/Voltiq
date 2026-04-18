@@ -1,5 +1,10 @@
+import ToolUsageGate from "../../components/ToolUsageGate";
 import SolarYieldEstimator from "../../components/tools/SolarYieldEstimator";
 
 export default function SolarToolPage() {
-  return <SolarYieldEstimator />;
+  return (
+    <ToolUsageGate toolSlug="solar">
+      <SolarYieldEstimator />
+    </ToolUsageGate>
+  );
 }

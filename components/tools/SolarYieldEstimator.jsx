@@ -27,6 +27,8 @@ import {
   saveToolReportResult,
 } from "../../lib/reportStorage";
 import { calculateSolarYield } from "../../lib/solarCalc";
+import useSavedCalculationRestore from "../../hooks/useSavedCalculationRestore";
+import SaveCalculationButton from "../SaveCalculationButton";
 
 ChartJS.register(
   BarElement,
@@ -264,6 +266,55 @@ export default function SolarYieldEstimator() {
   const isBusy = loadingLocation || loadingClimate;
   const hasResults = results.annualYield !== null;
   const monthlyData = results.monthlyData?.length ? results.monthlyData : EMPTY_MONTHLY_DATA;
+  const savedInputData = {
+    city,
+    lat,
+    lon,
+    kWp,
+    tilt,
+    azimuth,
+    PR,
+    systemType,
+    dailyIrradiance,
+  };
+  const savedOutputData = {
+    results,
+    pdfData,
+    summary,
+  };
+
+  useSavedCalculationRestore(
+    "solar",
+    (savedCalculation) => {
+      const nextInputs = savedCalculation.inputData ?? {};
+      const nextOutput = savedCalculation.outputData ?? {};
+
+      setCity(nextInputs.city ?? "");
+      setLat(
+        nextInputs.lat === null || nextInputs.lat === undefined
+          ? null
+          : Number(nextInputs.lat)
+      );
+      setLon(
+        nextInputs.lon === null || nextInputs.lon === undefined
+          ? null
+          : Number(nextInputs.lon)
+      );
+      setKWp(Number(nextInputs.kWp ?? 10));
+      setTilt(Number(nextInputs.tilt ?? 30));
+      setAzimuth(Number(nextInputs.azimuth ?? 0));
+      setPR(Number(nextInputs.PR ?? 0.8));
+      setSystemType(nextInputs.systemType ?? "Grid-connected");
+      setDailyIrradiance(
+        Array.isArray(nextInputs.dailyIrradiance) ? nextInputs.dailyIrradiance : []
+      );
+      setResults(nextOutput.results ?? EMPTY_RESULTS);
+      setPdfData(nextOutput.pdfData ?? null);
+      setSummary(nextOutput.summary ?? "");
+      setError("");
+    },
+    setError
+  );
 
   const chartData = {
     labels: monthlyData.map((entry) => entry.month),
@@ -556,7 +607,7 @@ export default function SolarYieldEstimator() {
           </div>
 
           <div className="space-y-3">
-            <ActionButton onClick={handleCalculateAndAnalyze} loading={isBusy} variant="primary">
+            <ActionButton onClick={handleCalculateAndAnalyze} loading={isBusy} usageGuarded variant="primary">
               Calculate
             </ActionButton>
             <p className="text-sm text-[var(--color-text-muted)]">
@@ -615,6 +666,13 @@ export default function SolarYieldEstimator() {
             data={pdfData}
             disabled={!hasResults || !pdfData}
           />
+          {hasResults ? (
+            <SaveCalculationButton
+              toolSlug="solar"
+              inputData={savedInputData}
+              outputData={savedOutputData}
+            />
+          ) : null}
           {hasResults ? <ProjectReportCta /> : null}
         </div>
       </div>

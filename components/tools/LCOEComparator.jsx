@@ -34,6 +34,8 @@ import {
   createToolReportSnapshot,
   saveToolReportResult,
 } from "../../lib/reportStorage";
+import useSavedCalculationRestore from "../../hooks/useSavedCalculationRestore";
+import SaveCalculationButton from "../SaveCalculationButton";
 import { calcLCOE, calcSensitivityCF, TECH_DEFAULTS } from "../../lib/lcoeCalc";
 
 ChartJS.register(
@@ -565,6 +567,41 @@ export default function LCOEComparator() {
   const hasResults = Boolean(results);
   const gasCarbon = previewResults.natural_gas?.breakdown.carbon ?? 0;
   const nuclearCarbon = previewResults.nuclear?.breakdown.carbon ?? 0;
+  const savedInputData = {
+    params,
+    globalParams,
+    activePreset,
+  };
+  const savedOutputData = {
+    results,
+    pdfData,
+    aiAnalysis,
+    activeTab: "results",
+  };
+
+  useSavedCalculationRestore(
+    "lcoe",
+    (savedCalculation) => {
+      const nextInputs = savedCalculation.inputData ?? {};
+      const nextOutput = savedCalculation.outputData ?? {};
+
+      setParams(nextInputs.params ?? nextInputs.technologies ?? createDefaultParams());
+      setGlobalParams(
+        nextInputs.globalParams ?? {
+          discountRate: Number(nextInputs.discountRate ?? 8),
+          carbonCostPerTon: Number(nextInputs.carbonCostPerTon ?? 0),
+        }
+      );
+      setActivePreset(nextInputs.activePreset ?? "custom");
+      setResults(nextOutput.results ?? null);
+      setPdfData(nextOutput.pdfData ?? null);
+      setAiAnalysis(nextOutput.aiAnalysis ?? "");
+      setActiveTab(nextOutput.activeTab ?? "results");
+      setLoadingAI(false);
+      setError("");
+    },
+    setError
+  );
 
   function applyLocalResults(nextParams, nextGlobalParams, nextPreset = "custom") {
     if (!results) {
@@ -1037,7 +1074,7 @@ export default function LCOEComparator() {
                 >
                   Reset all to defaults
                 </button>
-                <ActionButton onClick={handleCalculateAll} loading={loadingAI} variant="primary">
+                <ActionButton onClick={handleCalculateAll} loading={loadingAI} usageGuarded variant="primary">
                   Calculate all
                 </ActionButton>
               </div>
@@ -1254,6 +1291,13 @@ export default function LCOEComparator() {
               </PanelCard>
 
               <ExportButton toolName="LCOE Comparator" data={pdfData} disabled={!pdfData || loadingAI} />
+              {hasResults ? (
+                <SaveCalculationButton
+                  toolSlug="lcoe"
+                  inputData={savedInputData}
+                  outputData={savedOutputData}
+                />
+              ) : null}
               {pdfData ? <ProjectReportCta /> : null}
             </div>
           ) : (
