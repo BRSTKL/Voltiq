@@ -194,3 +194,6 @@ export function ProjectReportCta({
     </div>
   );
 }
+
+export { StatCard } from "./StatCard";
+export { SectionHeader } from "./SectionHeader";
