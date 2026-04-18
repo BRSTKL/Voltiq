@@ -12,6 +12,8 @@ const optionalServerEnvs = [
   "GOOGLE_CLIENT_SECRET",
   "AUTH_RESEND_KEY",
   "ADMIN_EMAIL",
+  // Secures hourly market sync cron requests in production.
+  "CRON_SECRET",
 ] as const;
 
 export function validateEnv() {

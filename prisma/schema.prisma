@@ -90,3 +90,28 @@ model SavedCalculation {
 
   @@index([userId, toolSlug, createdAt])
 }
+
+model MarketPrice {
+  id        String   @id @default(cuid())
+  date      DateTime @db.Date
+  hour      Int
+  ptf       Float
+  smf       Float?
+  createdAt DateTime @default(now())
+
+  @@unique([date, hour])
+  @@index([date])
+}
+
+model ForecastResult {
+  id           String   @id @default(cuid())
+  forecastFor  DateTime @db.Date
+  generatedAt  DateTime @default(now())
+  hour         Int
+  predictedPtf Float
+  lowerBound   Float
+  upperBound   Float
+  modelVersion String   @default("v1")
+
+  @@index([forecastFor])
+}
