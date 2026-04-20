@@ -423,7 +423,18 @@ function LegacyPricingPage() {
 }
 
 export default function PricingPage() {
-  return <StripePricingPage />;
+  return (
+    <>
+      <Head>
+        <title>Fiyatlandırma | Voltiq</title>
+        <meta
+          name="description"
+          content="Ücretsiz, Pro ve Enterprise planlar ile enerji piyasası analizine başlayın."
+        />
+      </Head>
+      <StripePricingPage />
+    </>
+  );
 }
 
 

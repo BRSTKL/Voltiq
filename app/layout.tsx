@@ -12,12 +12,12 @@ export const metadata: Metadata = {
   },
   description:
     "Professional renewable energy engineering tools. Solar yield, wind energy, battery storage, LCOE, and 11 more calculators. Start free.",
-  metadataBase: new URL("https://voltiq.app"),
+  metadataBase: new URL("https://voltiq.io"),
   openGraph: {
     title: "Voltiq | Renewable Energy Calculation Tools",
     description:
       "15 engineering tools for solar, wind, battery storage, LCOE, and more. Start free.",
-    url: "https://voltiq.app",
+    url: "https://voltiq.io",
     siteName: "Voltiq",
     type: "website",
   },

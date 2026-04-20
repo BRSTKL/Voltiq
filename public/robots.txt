@@ -1,8 +1,7 @@
 User-agent: *
 Allow: /
+Allow: /tools/market-dashboard
 Disallow: /api/
 Disallow: /dashboard/
-Disallow: /admin/
-Disallow: /login
 
-Sitemap: https://voltiq.app/sitemap.xml
+Sitemap: https://voltiq.io/sitemap.xml

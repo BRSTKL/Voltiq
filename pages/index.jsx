@@ -529,36 +529,33 @@ export default function HomePage() {
       </main>
 
       <Head>
-        <title>
-          Voltiq | AI market intelligence and engineering tools for Turkey&apos;s
-          energy market
-        </title>
+        <title>Voltiq — Türkiye Enerji Piyasası Analizi &amp; Mühendislik Araçları</title>
         <meta
           name="description"
-          content="Analyze day-ahead power prices, explore 24-hour PTF forecasts, and access 15 engineering tools for solar, wind, storage, hydrogen, and project finance."
+          content="Gün öncesi PTF analizi, 24 saatlik tahmin ve 15 mühendislik aracı — Türkiye elektrik piyasası profesyonelleri için."
         />
         <meta name="theme-color" media="(prefers-color-scheme: light)" content="#0A0A0F" />
         <meta name="theme-color" media="(prefers-color-scheme: dark)" content="#0A0A0F" />
         <meta
           property="og:title"
-          content="Voltiq | AI market intelligence and engineering tools for Turkey's energy market"
+          content="Voltiq — Türkiye Enerji Piyasası Analizi"
         />
         <meta
           property="og:description"
-          content="Follow EP\u0130A\u015E market signals, review 24-hour PTF forecasts, and work across 15 engineering tools in one platform."
+          content="EPİAŞ verisi, PTF tahmini ve mühendislik araçları."
         />
         <meta property="og:type" content="website" />
-        <meta property="og:url" content="https://voltiq.app" />
+        <meta property="og:url" content="https://voltiq.io" />
         <meta name="twitter:card" content="summary_large_image" />
         <meta
           name="twitter:title"
-          content="Voltiq | AI market intelligence and engineering tools for Turkey's energy market"
+          content="Voltiq — Türkiye Enerji Piyasası Analizi & Mühendislik Araçları"
         />
         <meta
           name="twitter:description"
-          content="Follow EP\u0130A\u015E market signals, review 24-hour PTF forecasts, and work across 15 engineering tools in one platform."
+          content="EPİAŞ verisi, PTF tahmini ve mühendislik araçları."
         />
-        <link rel="canonical" href="https://voltiq.app" />
+        <link rel="canonical" href="https://voltiq.io" />
       </Head>
     </>
   );
