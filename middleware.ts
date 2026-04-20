@@ -1,6 +1,12 @@
 import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
 
+// GATING STRATEGY:
+// Hard redirect (-> /login): /dashboard/* - requires authentication
+// Soft gate (shows upgrade modal / locked states in-page): /tools/* - middleware does not block these routes
+// Public at middleware layer: /, /pricing, /docs, /contact, /privacy, /terms, /login, /api/market/*
+// Note: /api/market/sync still keeps its own CRON_SECRET check inside the route handler
+
 type MiddlewareSession = {
   user?: {
     email?: string | null;
@@ -56,12 +62,5 @@ export default async function middleware(request: NextRequest) {
 }
 
 export const config = {
-  matcher: [
-    "/dashboard",
-    "/dashboard/:path*",
-    "/tools",
-    "/tools/:path*",
-    "/admin",
-    "/admin/:path*",
-  ],
+  matcher: ["/dashboard", "/dashboard/:path*", "/admin", "/admin/:path*"],
 };
