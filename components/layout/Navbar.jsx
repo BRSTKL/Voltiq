@@ -1,6 +1,9 @@
+"use client";
+
 import Link from "next/link";
-import { useRouter } from "next/router";
 import { useEffect, useState } from "react";
+import { useRouter as useCompatRouter } from "next/compat/router";
+import { usePathname } from "next/navigation";
 import { Bars3Icon } from "@heroicons/react/24/outline";
 import AuthButton from "../AuthButton";
 
@@ -55,12 +58,13 @@ function MarketLink({ mobile = false, onClick }) {
 }
 
 export default function Navbar() {
-  const router = useRouter();
+  const router = useCompatRouter();
+  const pathname = usePathname() ?? router?.pathname ?? "/";
   const [isMenuOpen, setIsMenuOpen] = useState(false);
 
   useEffect(() => {
     setIsMenuOpen(false);
-  }, [router.pathname]);
+  }, [pathname]);
 
   return (
     <header className="sticky top-0 z-50 border-b border-[#1E1E2E] bg-[rgba(10,10,15,0.88)] backdrop-blur-[14px]">
@@ -80,7 +84,7 @@ export default function Navbar() {
               key={item.href}
               href={item.href}
               label={item.label}
-              active={item.match(router.pathname)}
+              active={item.match(pathname)}
             />
           ))}
         </nav>
@@ -108,7 +112,7 @@ export default function Navbar() {
                   key={item.href}
                   href={item.href}
                   label={item.label}
-                  active={item.match(router.pathname)}
+                  active={item.match(pathname)}
                   onClick={() => setIsMenuOpen(false)}
                   mobile
                 />

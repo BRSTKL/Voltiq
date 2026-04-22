@@ -1,7 +1,8 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import type { ReactNode } from "react";
 
 import "@/styles/globals.css";
+import "@/lib/env";
 
 import AuthSessionProvider from "@/components/AuthSessionProvider";
 
@@ -27,10 +28,19 @@ export const metadata: Metadata = {
     description:
       "15 engineering tools for solar, wind, battery storage, LCOE, and more.",
   },
+  icons: {
+    icon: "/favicon.ico",
+    apple: "/apple-touch-icon.png",
+  },
   robots: {
     index: true,
     follow: true,
   },
+};
+
+export const viewport: Viewport = {
+  themeColor: "#0A0A0F",
+  colorScheme: "dark",
 };
 
 export default function RootLayout({ children }: { children: ReactNode }) {

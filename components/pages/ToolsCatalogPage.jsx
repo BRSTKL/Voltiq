@@ -1,3 +1,5 @@
+"use client";
+
 import Link from "next/link";
 import { useState } from "react";
 import {
@@ -12,7 +14,8 @@ import {
   PaperAirplaneIcon,
   SunIcon,
 } from "@heroicons/react/24/outline";
-import { PanelCard } from "../../components/ui";
+
+import { PanelCard } from "@/components/ui";
 
 const filters = [
   { label: "All", value: "all" },
@@ -23,6 +26,7 @@ const filters = [
   { label: "Sustainability", value: "sustainability" },
   { label: "Storage", value: "storage" },
   { label: "Financial", value: "financial" },
+  { label: "Trading", value: "trading" },
 ];
 
 const toolColorClasses = {
@@ -50,6 +54,7 @@ const categoryBadgeClasses = {
   sustainability: "bg-[#EAF3DE] text-[#3B6D11]",
   storage: "bg-[var(--badge-blue-bg)] text-[var(--badge-blue-text)]",
   financial: "bg-[var(--badge-amber-bg)] text-[var(--badge-amber-text)]",
+  trading: "bg-[var(--badge-blue-bg)] text-[var(--badge-blue-text)]",
 };
 
 const difficultyBadgeClasses = {
@@ -202,6 +207,18 @@ const tools = [
     isNew: true,
   },
   {
+    name: "Dengesizlik Bedeli Simulat\u00f6r\u00fc",
+    desc: "G\u00d6P-ger\u00e7ekle\u015fme fark\u0131ndan dogan dengesizlik maliyetini PTF, SMF ve sistem y\u00f6n\u00fc ile birlikte sim\u00fcle edin.",
+    category: "trading",
+    difficulty: "hard",
+    apis: "EP\u0130A\u015e market API + local settlement engine",
+    href: "/tools/imbalance",
+    color: "#E6F1FB",
+    iconColor: "#185FA5",
+    Icon: CurrencyDollarIcon,
+    isNew: true,
+  },
+  {
     name: "Solar ROI Calculator",
     desc: "25-year cumulative return, payback period and electricity price escalation",
     category: "financial",
@@ -301,7 +318,7 @@ function ToolCard({ tool }) {
   );
 }
 
-export default function ToolsPage() {
+export default function ToolsCatalogPage() {
   const [activeFilter, setActiveFilter] = useState("all");
 
   const visibleTools =
@@ -310,7 +327,7 @@ export default function ToolsPage() {
       : tools.filter((tool) => tool.category === activeFilter);
 
   return (
-    <main className="mx-auto max-w-7xl px-4 pb-16 pt-14 sm:px-6 sm:pb-24 sm:pt-20">
+    <div className="mx-auto max-w-7xl px-4 pb-16 pt-14 sm:px-6 sm:pb-24 sm:pt-20">
       <PanelCard className="mb-8 flex flex-col gap-3 bg-[var(--color-brand-light)] sm:flex-row sm:items-center sm:justify-between">
         <div>
           <p className="text-sm font-semibold uppercase tracking-[0.18em] text-[var(--color-brand-dark)]">
@@ -366,6 +383,6 @@ export default function ToolsPage() {
           <ToolCard key={tool.name} tool={tool} />
         ))}
       </div>
-    </main>
+    </div>
   );
 }

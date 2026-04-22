@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { useRouter } from "next/router";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 
 type SaveCalculationButtonProps = {
   toolSlug: string;
@@ -55,6 +55,8 @@ export default function SaveCalculationButton({
   disabled = false,
 }: SaveCalculationButtonProps) {
   const router = useRouter();
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
   const [isSaving, setIsSaving] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
   const [isError, setIsError] = useState(false);
@@ -83,7 +85,10 @@ export default function SaveCalculationButton({
       });
 
       if (response.status === 401) {
-        const callbackUrl = getCallbackUrl(router.asPath || "/tools");
+        const currentSearch = searchParams?.toString();
+        const callbackUrl = getCallbackUrl(
+          pathname ? `${pathname}${currentSearch ? `?${currentSearch}` : ""}` : "/tools"
+        );
         void router.push(`/login?callbackUrl=${encodeURIComponent(callbackUrl)}`);
         return;
       }

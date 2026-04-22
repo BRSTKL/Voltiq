@@ -1,9 +1,8 @@
 "use client";
 
-import Head from "next/head";
 import Link from "next/link";
 import { useMemo, useState } from "react";
-import { useRouter } from "next/router";
+import { useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
 import {
   ArrowRight,
@@ -240,7 +239,7 @@ export default function StripePricingPage() {
     setErrorMessage(null);
 
     if (!isAuthenticated) {
-      await router.push(`/login?callbackUrl=${encodeURIComponent("/pricing")}`);
+      router.push(`/login?callbackUrl=${encodeURIComponent("/pricing")}`);
       return;
     }
 
@@ -273,16 +272,7 @@ export default function StripePricingPage() {
   }
 
   return (
-    <>
-      <Head>
-        <title>Pricing | Voltiq</title>
-        <meta
-          name="description"
-          content="Upgrade Voltiq with Stripe Checkout. Choose Free, Pro, or Enterprise monthly access."
-        />
-      </Head>
-
-      <div className="min-h-screen bg-gray-950 text-white">
+    <div className="min-h-screen bg-gray-950 text-white">
         <div className="mx-auto flex w-full max-w-6xl flex-col gap-16 px-4 py-14 sm:px-6 lg:px-8">
           <section className="overflow-hidden rounded-[2rem] border border-white/10 bg-[radial-gradient(circle_at_top,_rgba(16,185,129,0.18),_transparent_42%),linear-gradient(180deg,rgba(17,24,39,0.96),rgba(3,7,18,1))] p-8 sm:p-10">
             <div className="grid gap-10 lg:grid-cols-[1.2fr_0.8fr]">
@@ -407,6 +397,5 @@ export default function StripePricingPage() {
           </section>
         </div>
       </div>
-    </>
   );
 }

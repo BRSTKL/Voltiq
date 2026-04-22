@@ -1,5 +1,7 @@
+"use client";
+
 import Link from "next/link";
-import { Fragment, useEffect, useState } from "react";
+import { Fragment, useEffect, useRef, useState } from "react";
 import {
   ArrowDownTrayIcon,
   ArrowPathIcon,
@@ -7,8 +9,6 @@ import {
   LockClosedIcon,
 } from "@heroicons/react/24/outline";
 import {
-  Area,
-  AreaChart,
   Bar,
   BarChart,
   CartesianGrid,
@@ -27,13 +27,15 @@ import { Badge, PanelCard, SectionLabel } from "@/components/ui";
 import { StatCard } from "@/components/ui/StatCard";
 
 const TIME_RANGE_OPTIONS = [
-  { key: "today", label: "Bug\u00fcn", days: 30 },
+  { key: "today", label: "Bug\u00fcn", days: 1 },
   { key: "7", label: "7 G\u00fcn", days: 7 },
   { key: "30", label: "30 G\u00fcn", days: 30 },
   { key: "90", label: "90 G\u00fcn", days: 90 },
 ];
 
 const RELATED_TOOL_SLUGS = ["solar", "lcoe", "battery"];
+const MARKET_FETCH_WARNING =
+  "EP\u0130A\u015e verisi y\u00fcklenemedi \u2014 mock veri g\u00f6steriliyor";
 
 const RELATED_TOOL_META = {
   solar: {
@@ -96,6 +98,24 @@ function formatNumber(value) {
   });
 }
 
+function formatChartValue(value) {
+  if (typeof value !== "number") {
+    return "-";
+  }
+
+  return `${formatNumber(value)} TRY/MWh`;
+}
+
+function round1(value) {
+  return Number(value.toFixed(1));
+}
+
+function getTimeRangeDays(rangeKey) {
+  return (
+    TIME_RANGE_OPTIONS.find((option) => option.key === rangeKey)?.days ?? 30
+  );
+}
+
 function getUniqueDates(prices) {
   return [...new Set(prices.map((price) => price.date))].sort();
 }
@@ -128,8 +148,11 @@ function buildDailyAverageSeries(prices) {
   const grouped = new Map();
 
   prices.forEach((price) => {
-    const bucket = grouped.get(price.date) ?? [];
-    bucket.push(price.ptf);
+    const bucket = grouped.get(price.date) ?? { ptf: [], smf: [] };
+    bucket.ptf.push(price.ptf);
+    if (typeof price.smf === "number") {
+      bucket.smf.push(price.smf);
+    }
     grouped.set(price.date, bucket);
   });
 
@@ -137,33 +160,37 @@ function buildDailyAverageSeries(prices) {
     .sort(([a], [b]) => a.localeCompare(b))
     .map(([date, values]) => ({
       date,
-      avgPtf: Number(average(values).toFixed(1)),
+      avgPtf: round1(average(values.ptf)),
+      avgSmf: values.smf.length > 0 ? round1(average(values.smf)) : null,
     }));
 }
 
-function buildTodayVsYesterdaySeries(prices) {
+function buildHourlyMarketSeries(prices) {
   const latestDate = getLatestDate(prices);
 
   if (!latestDate) {
-    return [];
+    return Array.from({ length: 24 }, (_, hour) => ({
+      hour,
+      ptf: null,
+      smf: null,
+    }));
   }
 
-  const previousDate = getPreviousDate(prices, latestDate);
-  const todayMap = new Map();
-  const yesterdayMap = new Map();
+  const hourlyMap = new Map();
 
   prices.forEach((price) => {
     if (price.date === latestDate) {
-      todayMap.set(price.hour, price.ptf);
-    } else if (price.date === previousDate) {
-      yesterdayMap.set(price.hour, price.ptf);
+      hourlyMap.set(price.hour, {
+        ptf: price.ptf,
+        smf: typeof price.smf === "number" ? price.smf : null,
+      });
     }
   });
 
   return Array.from({ length: 24 }, (_, hour) => ({
     hour,
-    ptf: todayMap.get(hour) ?? null,
-    ptfYesterday: yesterdayMap.get(hour) ?? null,
+    ptf: hourlyMap.get(hour)?.ptf ?? null,
+    smf: hourlyMap.get(hour)?.smf ?? null,
   }));
 }
 
@@ -268,6 +295,105 @@ function getCategoryMeta(hour) {
   };
 }
 
+function generateLocalMockPrices(days) {
+  const safeDays = Math.max(1, Math.floor(days));
+  const now = new Date();
+  const prices = [];
+
+  for (let dayOffset = safeDays - 1; dayOffset >= 0; dayOffset -= 1) {
+    const currentDate = new Date(
+      Date.UTC(
+        now.getUTCFullYear(),
+        now.getUTCMonth(),
+        now.getUTCDate() - dayOffset
+      )
+    );
+    const dateKey = currentDate.toISOString().slice(0, 10);
+    const dailyBias = Math.sin((safeDays - dayOffset) / 3.2) * 72;
+
+    for (let hour = 0; hour < 24; hour += 1) {
+      const isPeak = (hour >= 8 && hour <= 11) || (hour >= 17 && hour <= 21);
+      const intradayWave = Math.sin(((hour - 7) / 24) * Math.PI * 2) * 110;
+      const shoulderWave = Math.cos(((hour + 1) / 24) * Math.PI * 4) * 36;
+      const peakPremium = isPeak ? 190 : hour >= 0 && hour <= 5 ? -95 : 0;
+      const ptf = Math.max(
+        520,
+        round1(1780 + dailyBias + intradayWave + shoulderWave + peakPremium)
+      );
+      const smfNoise = Math.sin((hour + safeDays - dayOffset) * 1.3) * 84;
+      const smf = Math.max(480, round1(ptf + smfNoise));
+
+      prices.push({
+        date: dateKey,
+        hour,
+        ptf,
+        smf,
+      });
+    }
+  }
+
+  return prices;
+}
+
+function buildMockStats(prices) {
+  const latestDate = getLatestDate(prices);
+
+  if (!latestDate) {
+    return {
+      todayAvg: 0,
+      todayMax: { ptf: 0, hour: 0 },
+      todayMin: { ptf: 0, hour: 0 },
+      yesterdayAvg: 0,
+      vsYesterday: 0,
+      direction: "stable",
+      isMock: true,
+    };
+  }
+
+  const previousDate = getPreviousDate(prices, latestDate) ?? latestDate;
+  const todayPrices = prices.filter((price) => price.date === latestDate);
+  const yesterdayPrices = prices.filter((price) => price.date === previousDate);
+  const todayAverageRaw = average(todayPrices.map((price) => price.ptf));
+  const yesterdayAverageRaw =
+    yesterdayPrices.length > 0
+      ? average(yesterdayPrices.map((price) => price.ptf))
+      : todayAverageRaw;
+  const todayMax = todayPrices.reduce((selected, price) => {
+    if (!selected || price.ptf > selected.ptf) {
+      return price;
+    }
+
+    return selected;
+  }, null);
+  const todayMin = todayPrices.reduce((selected, price) => {
+    if (!selected || price.ptf < selected.ptf) {
+      return price;
+    }
+
+    return selected;
+  }, null);
+  const vsYesterday =
+    yesterdayAverageRaw === 0
+      ? 0
+      : round1(
+          ((todayAverageRaw - yesterdayAverageRaw) / yesterdayAverageRaw) * 100
+        );
+
+  return {
+    todayAvg: round1(todayAverageRaw),
+    todayMax: todayMax
+      ? { ptf: round1(todayMax.ptf), hour: todayMax.hour }
+      : { ptf: 0, hour: 0 },
+    todayMin: todayMin
+      ? { ptf: round1(todayMin.ptf), hour: todayMin.hour }
+      : { ptf: 0, hour: 0 },
+    yesterdayAvg: round1(yesterdayAverageRaw),
+    vsYesterday,
+    direction: vsYesterday > 1 ? "up" : vsYesterday < -1 ? "down" : "stable",
+    isMock: true,
+  };
+}
+
 function DashboardSkeleton() {
   return (
     <main className="mx-auto max-w-[1280px] px-4 py-8 lg:px-8">
@@ -292,6 +418,28 @@ function DashboardSkeleton() {
         <div className="card-surface h-[260px] animate-pulse" />
       </div>
     </main>
+  );
+}
+
+function ChartSkeleton({ height = 300 }) {
+  return (
+    <div
+      className="animate-pulse rounded-[18px] border border-[#1E1E2E] bg-[#0F1117] p-4"
+      style={{ height }}
+    >
+      <div className="flex h-full flex-col justify-between">
+        <div className="flex items-end gap-3">
+          {Array.from({ length: 12 }).map((_, index) => (
+            <div
+              key={index}
+              className="flex-1 rounded-t-[10px] bg-[#1A1A24]"
+              style={{ height: `${40 + ((index % 5) + 2) * 16}px` }}
+            />
+          ))}
+        </div>
+        <div className="mt-5 h-4 w-40 rounded bg-[#161821]" />
+      </div>
+    </div>
   );
 }
 
@@ -337,6 +485,7 @@ export default function MarketDashboard() {
   const [sort, setSort] = useState({ col: "hour", dir: "asc" });
   const [isMock, setIsMock] = useState(false);
   const [isChartRefreshing, setIsChartRefreshing] = useState(false);
+  const hasLoadedInitialRange = useRef(false);
 
   const isProduction = process.env.NODE_ENV === "production";
   const relatedTools = getToolDefinitions().filter((tool) =>
@@ -353,41 +502,49 @@ export default function MarketDashboard() {
     return response.json();
   }
 
+  function applyMockFallback(rangeKey) {
+    const baselinePrices = generateLocalMockPrices(30);
+    const activePrices = generateLocalMockPrices(getTimeRangeDays(rangeKey));
+
+    setStats(buildMockStats(baselinePrices));
+    setBaseline30DayPrices(baselinePrices);
+    setChartPrices(activePrices);
+    setIsMock(true);
+    setError(MARKET_FETCH_WARNING);
+  }
+
   async function loadInitialData() {
     setLoading(true);
     setError(null);
 
     try {
-      const [statsResponse, pricesResponse] = await Promise.all([
+      const activeDays = getTimeRangeDays(timeRange);
+      const [statsResponse, baselineResponse, activeResponse] = await Promise.all([
         fetchJson("/api/market/stats"),
         fetchJson("/api/market/prices?days=30"),
+        fetchJson(`/api/market/prices?days=${activeDays}`),
       ]);
 
       setStats(statsResponse);
-      setBaseline30DayPrices(pricesResponse.prices ?? []);
-      setChartPrices(pricesResponse.prices ?? []);
-      setIsMock(Boolean(statsResponse.isMock || pricesResponse.meta?.isMock));
-    } catch (loadError) {
-      setError(
-        loadError instanceof Error
-          ? loadError.message
-          : "Piyasa verisi y\u00fcklenemedi."
+      setBaseline30DayPrices(baselineResponse.prices ?? []);
+      setChartPrices(activeResponse.prices ?? []);
+      setIsMock(
+        Boolean(
+          statsResponse.isMock ||
+            baselineResponse.meta?.isMock ||
+            activeResponse.meta?.isMock
+        )
       );
+    } catch (loadError) {
+      console.warn(MARKET_FETCH_WARNING, loadError);
+      applyMockFallback(timeRange);
     } finally {
       setLoading(false);
     }
   }
 
   async function loadChartRange(nextRange) {
-    if (nextRange === "today") {
-      setChartPrices(baseline30DayPrices);
-      return;
-    }
-
-    const selectedOption = TIME_RANGE_OPTIONS.find(
-      (option) => option.key === nextRange
-    );
-    const days = selectedOption?.days ?? 30;
+    const days = getTimeRangeDays(nextRange);
 
     setIsChartRefreshing(true);
     setError(null);
@@ -397,45 +554,39 @@ export default function MarketDashboard() {
       setChartPrices(pricesResponse.prices ?? []);
       setIsMock((previous) => Boolean(previous || pricesResponse.meta?.isMock));
     } catch (loadError) {
-      setError(
-        loadError instanceof Error
-          ? loadError.message
-          : "Piyasa verisi y\u00fcklenemedi."
-      );
+      console.warn(MARKET_FETCH_WARNING, loadError);
+      setChartPrices(generateLocalMockPrices(days));
+      setIsMock(true);
+      setError(MARKET_FETCH_WARNING);
     } finally {
       setIsChartRefreshing(false);
     }
   }
 
   async function refreshDashboardData(nextRange = timeRange) {
-    const [statsResponse, baselineResponse] = await Promise.all([
-      fetchJson("/api/market/stats"),
-      fetchJson("/api/market/prices?days=30"),
-    ]);
+    try {
+      const days = getTimeRangeDays(nextRange);
+      const [statsResponse, baselineResponse, activeResponse] = await Promise.all([
+        fetchJson("/api/market/stats"),
+        fetchJson("/api/market/prices?days=30"),
+        fetchJson(`/api/market/prices?days=${days}`),
+      ]);
 
-    setStats(statsResponse);
-    setBaseline30DayPrices(baselineResponse.prices ?? []);
-    setIsMock(Boolean(statsResponse.isMock || baselineResponse.meta?.isMock));
-
-    if (nextRange === "today") {
-      setChartPrices(baselineResponse.prices ?? []);
-      return;
+      setStats(statsResponse);
+      setBaseline30DayPrices(baselineResponse.prices ?? []);
+      setChartPrices(activeResponse.prices ?? []);
+      setIsMock(
+        Boolean(
+          statsResponse.isMock ||
+            baselineResponse.meta?.isMock ||
+            activeResponse.meta?.isMock
+        )
+      );
+      setError(null);
+    } catch (refreshError) {
+      console.warn(MARKET_FETCH_WARNING, refreshError);
+      applyMockFallback(nextRange);
     }
-
-    const selectedOption = TIME_RANGE_OPTIONS.find(
-      (option) => option.key === nextRange
-    );
-    const days = selectedOption?.days ?? 30;
-    const activeResponse = await fetchJson(`/api/market/prices?days=${days}`);
-
-    setChartPrices(activeResponse.prices ?? []);
-    setIsMock(
-      Boolean(
-        statsResponse.isMock ||
-          baselineResponse.meta?.isMock ||
-          activeResponse.meta?.isMock
-      )
-    );
   }
 
   async function handleSync() {
@@ -480,17 +631,17 @@ export default function MarketDashboard() {
   }, []);
 
   useEffect(() => {
-    if (loading || baseline30DayPrices.length === 0) {
+    if (loading) {
       return;
     }
 
-    if (timeRange === "today") {
-      setChartPrices(baseline30DayPrices);
+    if (!hasLoadedInitialRange.current) {
+      hasLoadedInitialRange.current = true;
       return;
     }
 
     void loadChartRange(timeRange);
-  }, [timeRange, baseline30DayPrices, loading]);
+  }, [timeRange, loading]);
 
   if (loading) {
     return <DashboardSkeleton />;
@@ -501,8 +652,15 @@ export default function MarketDashboard() {
   }
 
   const activePrices = chartPrices.length > 0 ? chartPrices : baseline30DayPrices;
-  const lineSeries = buildTodayVsYesterdaySeries(baseline30DayPrices);
-  const areaSeries = buildDailyAverageSeries(activePrices);
+  const isSingleDayView = getTimeRangeDays(timeRange) === 1;
+  const dailySeries = buildDailyAverageSeries(activePrices);
+  const todayChartSeries = buildHourlyMarketSeries(activePrices);
+  const showDailySmf = dailySeries.some(
+    (point) => typeof point.avgSmf === "number"
+  );
+  const showTodaySmf = todayChartSeries.some(
+    (point) => typeof point.smf === "number"
+  );
   const latestDate = getLatestDate(baseline30DayPrices);
   const todayRows = latestDate
     ? baseline30DayPrices.filter((price) => price.date === latestDate)
@@ -592,13 +750,14 @@ export default function MarketDashboard() {
           ) : null}
 
           {isMock ? (
-            <div className="inline-flex rounded-lg border border-[rgba(245,158,11,0.35)] bg-[rgba(245,158,11,0.1)] px-3 py-2 text-xs font-medium text-[#F59E0B]">
-              {"Demo verisi \u00b7 EP\u0130A\u015e ba\u011flant\u0131s\u0131 kurulmad\u0131"}
+            <div className="rounded-[14px] border border-[rgba(245,158,11,0.35)] bg-[rgba(245,158,11,0.12)] px-4 py-3 text-sm font-semibold text-[#F59E0B]">
+              {"\u26a0\ufe0f Sim\u00fcle edilmi\u015f veri \u2014 Ger\u00e7ek EP\u0130A\u015e ba\u011flant\u0131s\u0131 kurulamad\u0131"}
             </div>
           ) : null}
 
           {error ? (
-            <div className="card-surface rounded-[12px] border border-[rgba(239,68,68,0.45)] px-4 py-3 text-sm text-[#FCA5A5]">
+            <div className="inline-flex items-center gap-2 rounded-full border border-[rgba(245,158,11,0.35)] bg-[rgba(245,158,11,0.12)] px-3 py-2 text-xs font-semibold text-[#F59E0B]">
+              <ExclamationTriangleIcon className="h-4 w-4" />
               {error}
             </div>
           ) : null}
@@ -670,84 +829,110 @@ export default function MarketDashboard() {
             </div>
           </div>
 
-          <div className={`mt-4 ${isChartRefreshing ? "opacity-60" : ""}`}>
-            <ResponsiveContainer width="100%" height={300}>
-              {timeRange === "today" ? (
-                <LineChart data={lineSeries}>
-                  <CartesianGrid stroke="#1E1E2E" strokeDasharray="3 3" />
-                  <XAxis
-                    dataKey="hour"
-                    stroke="#6B7280"
-                    tickFormatter={(hour) => `${hour}:00`}
-                  />
-                  <YAxis
-                    stroke="#6B7280"
-                    width={80}
-                    tickFormatter={(value) => formatNumber(value)}
-                  />
-                  <Tooltip
-                    contentStyle={TOOLTIP_STYLE}
-                    labelFormatter={(hour) => `Saat ${hour}:00`}
-                    formatter={(value, name) => [
-                      `${formatNumber(value)} TRY/MWh`,
-                      name === "ptf" ? "Bug\u00fcn" : "D\u00fcn",
-                    ]}
-                  />
-                  <Legend
-                    formatter={(value) =>
-                      value === "ptf" ? "Bug\u00fcn" : "D\u00fcn"
-                    }
-                  />
-                  <Line
-                    type="monotone"
-                    dataKey="ptf"
-                    name="ptf"
-                    stroke="#F59E0B"
-                    strokeWidth={2}
-                    dot={false}
-                  />
-                  <Line
-                    type="monotone"
-                    dataKey="ptfYesterday"
-                    name="ptfYesterday"
-                    stroke="#6B7280"
-                    strokeDasharray="4 4"
-                    strokeWidth={1.5}
-                    dot={false}
-                  />
-                </LineChart>
-              ) : (
-                <AreaChart data={areaSeries}>
-                  <CartesianGrid stroke="#1E1E2E" strokeDasharray="3 3" />
-                  <XAxis
-                    dataKey="date"
-                    stroke="#6B7280"
-                    tickFormatter={(value) => formatAxisDate(value)}
-                  />
-                  <YAxis
-                    stroke="#6B7280"
-                    width={80}
-                    tickFormatter={(value) => formatNumber(value)}
-                  />
-                  <Tooltip
-                    contentStyle={TOOLTIP_STYLE}
-                    labelFormatter={(value) => formatAxisDate(value)}
-                    formatter={(value) => [
-                      `${formatNumber(value)} TRY/MWh`,
-                      "Ort. PTF",
-                    ]}
-                  />
-                  <Area
-                    type="monotone"
-                    dataKey="avgPtf"
-                    stroke="#F59E0B"
-                    fill="#F59E0B"
-                    fillOpacity={0.08}
-                    strokeWidth={2}
-                  />
-                </AreaChart>
-              )}
-            </ResponsiveContainer>
+          <div className="mt-4">
+            {isChartRefreshing ? (
+              <ChartSkeleton height={300} />
+            ) : (
+              <ResponsiveContainer width="100%" height={300}>
+                {isSingleDayView ? (
+                  <BarChart data={todayChartSeries}>
+                    <CartesianGrid
+                      stroke="#1E1E2E"
+                      strokeDasharray="3 3"
+                      loading={isChartRefreshing}
+                    />
+                    <XAxis
+                      dataKey="hour"
+                      stroke="#6B7280"
+                      tickFormatter={(hour) => formatHour(hour)}
+                    />
+                    <YAxis
+                      stroke="#6B7280"
+                      width={80}
+                      tickFormatter={(value) => formatNumber(value)}
+                    />
+                    <Tooltip
+                      contentStyle={TOOLTIP_STYLE}
+                      loading={isChartRefreshing}
+                      labelFormatter={(hour) => `Saat ${formatHour(hour)}`}
+                      formatter={(value, name) => [
+                        formatChartValue(value),
+                        name === "ptf" ? "PTF" : "SMF",
+                      ]}
+                    />
+                    <Legend
+                      loading={isChartRefreshing}
+                      formatter={(value) => (value === "ptf" ? "PTF" : "SMF")}
+                    />
+                    <Bar
+                      dataKey="ptf"
+                      name="ptf"
+                      fill="#F59E0B"
+                      radius={[4, 4, 0, 0]}
+                    />
+                    {showTodaySmf ? (
+                      <Bar
+                        dataKey="smf"
+                        name="smf"
+                        fill="#10B981"
+                        radius={[4, 4, 0, 0]}
+                      />
+                    ) : null}
+                  </BarChart>
+                ) : (
+                  <LineChart data={dailySeries}>
+                    <CartesianGrid
+                      stroke="#1E1E2E"
+                      strokeDasharray="3 3"
+                      loading={isChartRefreshing}
+                    />
+                    <XAxis
+                      dataKey="date"
+                      stroke="#6B7280"
+                      tickFormatter={(value) => formatAxisDate(value)}
+                    />
+                    <YAxis
+                      stroke="#6B7280"
+                      width={80}
+                      tickFormatter={(value) => formatNumber(value)}
+                    />
+                    <Tooltip
+                      contentStyle={TOOLTIP_STYLE}
+                      loading={isChartRefreshing}
+                      labelFormatter={(value) => formatAxisDate(value)}
+                      formatter={(value, name) => [
+                        formatChartValue(value),
+                        name === "avgPtf" ? "Ort. PTF" : "Ort. SMF",
+                      ]}
+                    />
+                    <Legend
+                      loading={isChartRefreshing}
+                      formatter={(value) =>
+                        value === "avgPtf" ? "Ort. PTF" : "Ort. SMF"
+                      }
+                    />
+                    <Line
+                      type="monotone"
+                      dataKey="avgPtf"
+                      name="avgPtf"
+                      stroke="#F59E0B"
+                      strokeWidth={2}
+                      dot={false}
+                    />
+                    {showDailySmf ? (
+                      <Line
+                        type="monotone"
+                        dataKey="avgSmf"
+                        name="avgSmf"
+                        stroke="#10B981"
+                        strokeWidth={2}
+                        dot={false}
+                      />
+                    ) : null}
+                  </LineChart>
+                )}
+              </ResponsiveContainer>
+            )}
           </div>
         </div>
 
@@ -835,7 +1020,11 @@ export default function MarketDashboard() {
             <div className="mt-6">
               <ResponsiveContainer width="100%" height={220}>
                 <BarChart data={weekdaySeries}>
-                  <CartesianGrid stroke="#1E1E2E" strokeDasharray="3 3" />
+                  <CartesianGrid
+                    stroke="#1E1E2E"
+                    strokeDasharray="3 3"
+                    loading={loading}
+                  />
                   <XAxis dataKey="day" stroke="#6B7280" />
                   <YAxis
                     stroke="#6B7280"
@@ -844,6 +1033,7 @@ export default function MarketDashboard() {
                   />
                   <Tooltip
                     contentStyle={TOOLTIP_STYLE}
+                    loading={loading}
                     formatter={(value) => [
                       `${formatNumber(value)} TRY/MWh`,
                       "Ort. PTF",
@@ -866,7 +1056,11 @@ export default function MarketDashboard() {
             <div className="mt-6">
               <ResponsiveContainer width="100%" height={220}>
                 <BarChart data={hourlySeries}>
-                  <CartesianGrid stroke="#1E1E2E" strokeDasharray="3 3" />
+                  <CartesianGrid
+                    stroke="#1E1E2E"
+                    strokeDasharray="3 3"
+                    loading={loading}
+                  />
                   <XAxis dataKey="hour" stroke="#6B7280" />
                   <YAxis
                     stroke="#6B7280"
@@ -875,6 +1069,7 @@ export default function MarketDashboard() {
                   />
                   <Tooltip
                     contentStyle={TOOLTIP_STYLE}
+                    loading={loading}
                     labelFormatter={(label) => `Saat ${label}:00`}
                     formatter={(value) => [
                       `${formatNumber(value)} TRY/MWh`,

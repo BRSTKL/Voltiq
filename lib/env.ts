@@ -12,6 +12,10 @@ const optionalServerEnvs = [
   "GOOGLE_CLIENT_SECRET",
   "AUTH_RESEND_KEY",
   "ADMIN_EMAIL",
+  // Optional EPİAŞ Transparency Platform credentials.
+  "EPIAS_USERNAME",
+  "EPIAS_PASSWORD",
+  "EPIAS_TGT_ENDPOINT",
   // Secures hourly market sync cron requests in production.
   "CRON_SECRET",
 ] as const;

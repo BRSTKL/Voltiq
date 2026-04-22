@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback } from "react";
-import { useRouter } from "next/router";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 
 import type { UsageCheckResult } from "@/lib/usage";
 
@@ -19,6 +19,8 @@ function getCallbackUrl(fallbackPath: string) {
 
 export default function useUsageCheck() {
   const router = useRouter();
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
 
   const usageCheck = useCallback(
     async (
@@ -38,7 +40,10 @@ export default function useUsageCheck() {
         });
 
         if (response.status === 401) {
-          const callbackUrl = getCallbackUrl(router.asPath);
+          const currentSearch = searchParams?.toString();
+          const callbackUrl = getCallbackUrl(
+            pathname ? `${pathname}${currentSearch ? `?${currentSearch}` : ""}` : "/tools"
+          );
           void router.push(
             `/login?callbackUrl=${encodeURIComponent(callbackUrl)}`
           );
@@ -55,7 +60,7 @@ export default function useUsageCheck() {
         return { allowed: false };
       }
     },
-    [router]
+    [pathname, router, searchParams]
   );
 
   return {

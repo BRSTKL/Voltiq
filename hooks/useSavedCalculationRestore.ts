@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef } from "react";
-import { useRouter } from "next/router";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 
 type SavedCalculationRecord = {
   id: string;
@@ -26,6 +26,8 @@ export default function useSavedCalculationRestore(
   onError?: (message: string) => void
 ) {
   const router = useRouter();
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
   const restoreRef = useRef(onRestore);
   const errorRef = useRef(onError);
   const processedIdRef = useRef<string | null>(null);
@@ -39,11 +41,7 @@ export default function useSavedCalculationRestore(
   }, [onError]);
 
   useEffect(() => {
-    if (!router.isReady) {
-      return;
-    }
-
-    const savedCalculationId = router.query.savedCalculationId;
+    const savedCalculationId = searchParams?.get("savedCalculationId");
 
     if (typeof savedCalculationId !== "string") {
       return;
@@ -62,7 +60,10 @@ export default function useSavedCalculationRestore(
         const response = await fetch(`/api/calculations/${savedCalculationId}`);
 
         if (response.status === 401) {
-          const callbackUrl = getCallbackUrl(router.asPath || router.pathname);
+          const currentSearch = searchParams?.toString();
+          const callbackUrl = getCallbackUrl(
+            pathname ? `${pathname}${currentSearch ? `?${currentSearch}` : ""}` : "/tools"
+          );
           void router.push(`/login?callbackUrl=${encodeURIComponent(callbackUrl)}`);
           return;
         }
@@ -104,5 +105,5 @@ export default function useSavedCalculationRestore(
     return () => {
       isActive = false;
     };
-  }, [router, toolSlug]);
+  }, [pathname, router, searchParams, toolSlug]);
 }

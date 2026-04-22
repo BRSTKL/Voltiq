@@ -4,19 +4,18 @@ import NextAuth from "next-auth";
 import Google from "next-auth/providers/google";
 import Resend from "next-auth/providers/resend";
 
+import { authConfig } from "@/auth.config";
 import prisma from "@/lib/prisma";
 
 const resendFromAddress = "Voltiq <onboarding@resend.dev>";
 
 export const { handlers, auth, signIn, signOut } = NextAuth({
+  ...authConfig,
   adapter: PrismaAdapter(prisma),
   session: {
     strategy: "database",
   },
   trustHost: true,
-  pages: {
-    signIn: "/login",
-  },
   providers: [
     Google({
       clientId: process.env.GOOGLE_CLIENT_ID ?? "",
@@ -29,6 +28,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
     }),
   ],
   callbacks: {
+    ...authConfig.callbacks,
     async signIn({ user, email }) {
       if (email?.verificationRequest) {
         return true;

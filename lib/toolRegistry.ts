@@ -88,6 +88,15 @@ const TOOL_DEFINITIONS = [
     href: "/tools/lcoe",
   },
   {
+    slug: "imbalance",
+    name: "Dengesizlik Bedeli Simulat\u00f6r\u00fc",
+    categoryLabel: "Enerji Ticareti",
+    description:
+      "G\u00d6P-ger\u00e7ekle\u015fme fark\u0131ndan do\u011fan dengesizlik maliyetini sim\u00fcle edin",
+    href: "/tools/imbalance",
+    tier: "PRO",
+  },
+  {
     slug: "carbon",
     name: "Carbon Intensity Tracker",
     categoryLabel: "Sustainability",
