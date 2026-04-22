@@ -8,3 +8,8 @@ Thumbs.db
 
 .vercel
 .env*.local
+
+.env
+.env.*.inspect
+.env.production*
+.env.local
